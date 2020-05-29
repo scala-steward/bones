@@ -1,6 +1,6 @@
 package com.bones.protobuf.custom
 
-import com.bones.data.custom.CustomStringValue
+import com.bones.data.algebra.CustomStringValue
 import com.bones.protobuf.ProtobufSequentialEncoderInterpreter
 import com.bones.protobuf.ProtobufSequentialEncoderInterpreter.EncodeToProto
 

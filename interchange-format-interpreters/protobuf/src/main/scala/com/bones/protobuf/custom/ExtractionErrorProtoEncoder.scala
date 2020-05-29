@@ -1,6 +1,6 @@
 package com.bones.protobuf.custom
 
-import com.bones.data.custom._
+import com.bones.data.algebra._
 import com.bones.interpreter.custom.ExtractionErrorEncoder
 import com.bones.protobuf.ProtobufSequentialEncoderInterpreter.{
   CustomEncoderInterpreter,

@@ -8,21 +8,35 @@ import cats.data.NonEmptyList
 import com.bones.Util
 import com.bones.Util.{stringToLocalDate, stringToLocalDateTime, stringToLocalTime}
 import com.bones.data.Error._
-import com.bones.data.KeyValueDefinition.CoproductDataDefinition
-import com.bones.data.KvpValue.Path
-import com.bones.data.custom.CNilF
+import com.bones.data.HasManifest.AlgebraWithManifest
+import com.bones.data.algebra.{CNilF, HListConvert, KvpCoproductConvert, ListData}
 import com.bones.data.{KeyValueDefinition, KvpCoNil, KvpCoproduct, KvpSingleValueLeft, _}
-import com.bones.syntax.NoAlgebra
-import com.bones.validation.ValidationDefinition.ValidationOp
+import com.bones.validation.algebra.ScalaCoreValidation.ValidationOp
 import com.bones.validation.{ValidationUtil => vu}
 import shapeless.{:+:, ::, Coproduct, HList, HNil, Inl, Inr, Nat}
 
 import scala.util.Try
 
+
+/**
+ * This is our typeclass for validate.
+ * @tparam A
+ */
+trait Validate[A] {
+  type ALG[_]
+  val algebra: ALG[_]
+
+
+  def validateFromByteArray(arr: Array[Byte]): Either[ExtractionError, A]
+}
+
 object KvpInterchangeFormatValidatorInterpreter {
+
+  type Path = List[String]
 
   /** Represents a path to an element, such as List("someClass", "someMember", "someField") */
   type CoproductType = String
+
 
   object InterchangeFormatValidator {
 
@@ -37,7 +51,6 @@ object KvpInterchangeFormatValidatorInterpreter {
           case Inl(l) => li.validate(l)
           case Inr(r) => ri.validate(r)
         }
-
       }
 
     implicit class InterpreterOps[ALG[_], OUT](val base: InterchangeFormatValidator[ALG, OUT])
@@ -45,26 +58,18 @@ object KvpInterchangeFormatValidatorInterpreter {
       def ++[R[_] <: Coproduct](r: InterchangeFormatValidator[R, OUT])
         : InterchangeFormatValidator[Lambda[A => ALG[A] :+: R[A]], OUT] =
         merge(base, r)
-
     }
 
     case class CNilInterchangeFormatValidator[OUT]()
         extends InterchangeFormatValidator[CNilF, OUT] {
-      override def validate[A](
-        alg: CNilF[A]): (Option[OUT], List[String]) => Either[NonEmptyList[ExtractionError], A] =
+
+      override def validate[A](alg: CNilF[A]): (Option[OUT], List[String]) => Either[NonEmptyList[ExtractionError], A] =
         sys.error("Unreachable code")
     }
   }
 
   trait InterchangeFormatValidator[ALG[_], IN] {
-    def validate[A](
-      alg: ALG[A]): (Option[IN], List[String]) => Either[NonEmptyList[ExtractionError], A]
-  }
-
-  case class NoAlgebraValidator[IN]() extends InterchangeFormatValidator[NoAlgebra, IN] {
-    override def validate[A](
-      alg: NoAlgebra[A]): (Option[IN], List[String]) => Either[NonEmptyList[ExtractionError], A] =
-      sys.error("Unreachable code")
+    def validate[A](alg: ALG[A], validator: InterchangeFormatValidator[ALG, IN]): (Option[IN], List[String]) => Either[NonEmptyList[ExtractionError], A]
   }
 
   /**
@@ -78,21 +83,21 @@ object KvpInterchangeFormatValidatorInterpreter {
     def localDateFormatter: DateTimeFormatter
     def localTimeFormatter: DateTimeFormatter
 
-    override def extractLocalDateTime[ALG[_], A](dataDefinition: Either[KvpValue[A], ALG[A]])(
+    override def extractLocalDateTime[ALG[_], A](dataDefinition: ALG[A])(
       in: OUT,
       path: Path): Either[NonEmptyList[ExtractionError], LocalDateTime] = {
       extractString(dataDefinition, classOf[LocalDateTime])(in, path)
         .flatMap(stringToLocalDateTime(_, localDateTimeFormatter, path))
     }
 
-    override def extractLocalDate[ALG[_], A](dataDefinition: Either[KvpValue[A], ALG[A]])(
+    override def extractLocalDate[ALG[_], A](dataDefinition: ALG[A])(
       in: OUT,
       path: Path): Either[NonEmptyList[ExtractionError], LocalDate] = {
       extractString(dataDefinition, classOf[LocalDate])(in, path)
         .flatMap(stringToLocalDate(_, localDateFormatter, path))
     }
 
-    override def extractLocalTime[ALG[_], A](dataDefinition: Either[KvpValue[A], ALG[A]])(
+    override def extractLocalTime[ALG[_], A](dataDefinition: ALG[A])(
       in: OUT,
       path: Path): Either[NonEmptyList[ExtractionError], LocalTime] = {
       extractString(dataDefinition, classOf[LocalTime])(in, path)
@@ -106,7 +111,7 @@ object KvpInterchangeFormatValidatorInterpreter {
   * Base trait for converting from an interchange format such as JSON to an HList or Case class.
   * @tparam IN The base data type of the interchange format, such as io.circe.Json
   */
-trait KvpInterchangeFormatValidatorInterpreter[IN] {
+trait KvpInterchangeFormatValidatorInterpreter[IN] { baseValidator =>
 
   /** An additional string in the serialized format which states the coproduct type */
   val coproductTypeKey: String
@@ -121,28 +126,20 @@ trait KvpInterchangeFormatValidatorInterpreter[IN] {
     * @tparam A The final data type returned by the resulting function.
     * @return A function which takes the IN data and returns an Either[ExtractionError,A]
     */
-  def validatorFromCustomSchema[ALG[_], A](
+  def validatorFromSchema[ALG[_], A](
     schema: BonesSchema[ALG, A],
     interchangeFormatValidator: InterchangeFormatValidator[ALG, IN])
     : IN => Either[NonEmptyList[ExtractionError], A] =
-    schema match {
-      case x: HListConvert[ALG, _, _, A] =>
-        (in) =>
-          valueDefinition(x, interchangeFormatValidator).apply(Some(in), List.empty)
-    }
+      in => interchangeFormatValidator.validate(schema.alg, baseValidator).apply(Some(in), List.empty)
 
-  def validatorFromSchema[A](
-    schema: BonesSchema[NoAlgebra, A]): IN => Either[NonEmptyList[ExtractionError], A] =
-    validatorFromCustomSchema[NoAlgebra, A](schema, NoAlgebraValidator[IN])
 
   def validatorFromSchemaWithPath[ALG[_], A](
     schema: BonesSchema[ALG, A],
     interchangeFormatValidator: InterchangeFormatValidator[ALG, IN])
     : (IN, Path) => Either[NonEmptyList[ExtractionError], A] =
-    schema match {
+    schema.alg match {
       case x: HListConvert[ALG, _, _, A] =>
-        (in, path) =>
-          valueDefinition(x, interchangeFormatValidator).apply(Some(in), path)
+        (in, path) => interchangeFormatValidator.validate(x, baseValidator)(Some(in), path)
       case co: KvpCoproductConvert[ALG, c, A] =>
         val coproductF = kvpCoproduct[ALG, c](co.from, interchangeFormatValidator)
         (in, path) =>
@@ -181,44 +178,44 @@ trait KvpInterchangeFormatValidatorInterpreter[IN] {
     * @tparam A The expected resulting type, eg String or Enumerated Type which we are trying to extract from a string.
     * @return The extracted String or an Error
     */
-  def extractString[ALG[_], A](dataDefinition: Either[KvpValue[A], ALG[A]], clazz: Class[_])(
+  def extractString[ALG[_], A](dataDefinition: ALG[A], clazz: Class[_])(
     in: IN,
     path: Path): Either[NonEmptyList[ExtractionError], String]
-  def extractInt[ALG[_], A](dataDefinition: Either[KvpValue[A], ALG[A]])(
+  def extractInt[ALG[_], A](dataDefinition: ALG[A])(
     in: IN,
     path: Path): Either[NonEmptyList[ExtractionError], Int]
-  def extractLong[ALG[_], A](dataDefinition: Either[KvpValue[A], ALG[A]])(
+  def extractLong[ALG[_], A](dataDefinition: ALG[A])(
     in: IN,
     path: Path): Either[NonEmptyList[ExtractionError], Long]
-  def extractBool[ALG[_], A](dataDefinition: Either[KvpValue[A], ALG[A]])(
+  def extractBool[ALG[_], A](dataDefinition: ALG[A])(
     in: IN,
     path: Path): Either[NonEmptyList[ExtractionError], Boolean]
-  def extractUuid[ALG[_], A](dataDefinition: Either[KvpValue[A], ALG[A]])(
+  def extractUuid[ALG[_], A](dataDefinition: ALG[A])(
     in: IN,
     path: Path): Either[NonEmptyList[ExtractionError], UUID] = {
     extractString(dataDefinition, classOf[UUID])(in, path).flatMap(stringToUuid(_, path))
   }
-  def extractLocalDateTime[ALG[_], A](dataDefinition: Either[KvpValue[A], ALG[A]])(
+  def extractLocalDateTime[ALG[_], A](dataDefinition: ALG[A])(
     in: IN,
     path: Path): Either[NonEmptyList[ExtractionError], LocalDateTime]
-  def extractLocalDate[ALG[_], A](dataDefinition: Either[KvpValue[A], ALG[A]])(
+  def extractLocalDate[ALG[_], A](dataDefinition: ALG[A])(
     in: IN,
     path: Path): Either[NonEmptyList[ExtractionError], LocalDate]
-  def extractLocalTime[ALG[_], A](dataDefinition: Either[KvpValue[A], ALG[A]])(
+  def extractLocalTime[ALG[_], A](dataDefinition: ALG[A])(
     in: IN,
     path: Path): Either[NonEmptyList[ExtractionError], LocalTime]
   def extractArray[ALG[_], A](
     op: ListData[ALG, A])(in: IN, path: Path): Either[NonEmptyList[ExtractionError], Seq[IN]]
-  def extractFloat[ALG[_], A](dataDefinition: Either[KvpValue[A], ALG[A]])(
+  def extractFloat[ALG[_], A](dataDefinition: ALG[A])(
     in: IN,
     path: Path): Either[NonEmptyList[ExtractionError], Float]
-  def extractDouble[ALG[_], A](dataDefinition: Either[KvpValue[A], ALG[A]])(
+  def extractDouble[ALG[_], A](dataDefinition: ALG[A])(
     in: IN,
     path: Path): Either[NonEmptyList[ExtractionError], Double]
-  def extractShort[ALG[_], A](dataDefinition: Either[KvpValue[A], ALG[A]])(
+  def extractShort[ALG[_], A](dataDefinition: ALG[A])(
     in: IN,
     path: Path): Either[NonEmptyList[ExtractionError], Short]
-  def extractBigDecimal[ALG[_], A](dataDefinition: Either[KvpValue[A], ALG[A]])(
+  def extractBigDecimal[ALG[_], A](dataDefinition: ALG[A])(
     in: IN,
     path: Path): Either[NonEmptyList[ExtractionError], BigDecimal]
   def stringValue(in: IN, elementName: String): Option[String]
@@ -228,9 +225,9 @@ trait KvpInterchangeFormatValidatorInterpreter[IN] {
     path: Path): Left[NonEmptyList[ExtractionError], Nothing]
 
   def required[ALG[_], A](
-    coproductDataDefinition: CoproductDataDefinition[ALG, A],
-    validations: List[ValidationOp[A]],
-    f: (IN, List[String]) => Either[NonEmptyList[ExtractionError], A],
+                           coproductDataDefinition: AlgebraWithManifest[ALG,A],
+                           validations: List[ValidationOp[A]],
+                           f: (IN, List[String]) => Either[NonEmptyList[ExtractionError], A],
   ): (Option[IN], List[String]) => Either[NonEmptyList[ExtractionError], A] =
     (inOpt: Option[IN], path: Path) =>
       for {
@@ -249,7 +246,7 @@ trait KvpInterchangeFormatValidatorInterpreter[IN] {
         (_: IN, path: List[String], coType: CoproductType) =>
           Left(NonEmptyList.one(SumTypeError(path, s"Unexpected type value: ${coType}")))
       case co: KvpSingleValueLeft[ALG, a, r] @unchecked => {
-        val fValue = determineValueDefinition[ALG, a](co.kvpValue, validator)
+        val fValue = validator.validate(co.kvpValue)
         val fTail = kvpCoproduct[ALG, r](co.kvpTail, validator)
         (in, path, coType) =>
           {
@@ -306,7 +303,9 @@ trait KvpInterchangeFormatValidatorInterpreter[IN] {
 
       case op: KvpSingleValueHead[ALG, h, t, tl, a] => {
 
-        val headInterpreter = determineValueDefinition(op.fieldDefinition.dataDefinition, validator)
+        val headInterpreter =
+          validator.validate(op.fieldDefinition.dataDefinition)
+//          determineValueDefinition(op.fieldDefinition.dataDefinition, validator)
         val tailInterpreter = kvpHList(op.tail, validator)
 
         (in: IN, path: Path) =>
@@ -332,194 +331,5 @@ trait KvpInterchangeFormatValidatorInterpreter[IN] {
 
   protected def isEmpty(json: IN): Boolean
 
-  protected def determineValueDefinition[ALG[_], A](
-    value: Either[KvpValue[A], ALG[A]],
-    extendedValidator: InterchangeFormatValidator[ALG, IN]
-  ): (Option[IN], List[String]) => Either[NonEmptyList[ExtractionError], A] = {
-    value match {
-      case Left(kvp)  => valueDefinition(kvp, extendedValidator)
-      case Right(ext) => extendedValidator.validate(ext)
-    }
-  }
-
-  protected def valueDefinition[ALG[_], A](
-    fgo: KvpValue[A],
-    extendedValidator: InterchangeFormatValidator[ALG, IN])
-    : (Option[IN], List[String]) => Either[NonEmptyList[ExtractionError], A] = {
-    val result: (Option[IN], List[String]) => Either[NonEmptyList[ExtractionError], A] =
-      fgo match {
-        case op: OptionalKvpValueDefinition[ALG, a] @unchecked =>
-          val applied = determineValueDefinition(op.valueDefinitionOp, extendedValidator)
-          (in: Option[IN], path: Path) =>
-            in match {
-              case None                  => Right(None)
-              case Some(n) if isEmpty(n) => Right(None)
-              case some @ Some(json)     => applied(some, path).map(Some(_))
-            }
-        case op: StringData =>
-          required(Left(op), op.validations, extractString(Left(fgo), classOf[String]))
-        case id: IntData =>
-          required(Left(id), id.validations, extractInt(Left(fgo)))
-        case op: LongData =>
-          required(Left(op), op.validations, extractLong(Left(fgo)))
-        case op: BooleanData =>
-          required(Left(op), op.validations, extractBool(Left(fgo)))
-        case op: UuidData =>
-          required(Left(op), op.validations, extractUuid(Left(fgo)))
-        case op @ LocalDateTimeData(validations) =>
-          required(Left(op), validations, extractLocalDateTime(Left(fgo)))
-        case op @ LocalDateData(validations) =>
-          required(Left(op), validations, extractLocalDate(Left(fgo)))
-        case op @ LocalTimeData(validations) =>
-          required(Left(op), validations, extractLocalTime(Left(fgo)))
-        case op @ ByteArrayData(validations) =>
-          val decoder = Base64.getDecoder
-          (inOpt: Option[IN], path: Path) =>
-            for {
-              in <- inOpt.toRight[NonEmptyList[ExtractionError]](
-                NonEmptyList.one(RequiredValue(path, Left(op))))
-              str <- extractString(Left(fgo), classOf[Array[Byte]])(in, path)
-              arr <- Try {
-                decoder.decode(str)
-              }.toEither.left.map(thr =>
-                NonEmptyList.one(CanNotConvert(path, str, classOf[Array[Byte]], None)))
-            } yield arr
-
-        case ed: EitherData[ALG, a, b] @unchecked =>
-          val optionalA = determineValueDefinition(ed.definitionA, extendedValidator)
-          val optionalB = determineValueDefinition(ed.definitionB, extendedValidator)
-          (in: Option[IN], path: Path) =>
-            {
-              optionalA(in, path) match {
-                case Left(err) =>
-                  val nonWrongTypeError = err.toList.filter {
-                    case WrongTypeError(_, _, _, _) => false
-                    case RequiredValue(_, _)        => false
-                    case CanNotConvert(_, _, _, _)  => false
-                    case _                          => true
-                  }
-                  if (nonWrongTypeError.isEmpty) {
-                    optionalB(in, path) match {
-                      case Right(b) => Right(Right(b))
-                      case Left(err) => {
-                        Left(NonEmptyList.one(RequiredValue(path, Left(ed))))
-                      }
-                    }
-                  } else {
-                    Left(err)
-                  }
-                case Right(a) => Right(Left(a))
-              }
-            }
-        case op: ListData[ALG, t] @unchecked =>
-          val valueF = determineValueDefinition(op.tDefinition, extendedValidator)
-
-          def appendArrayInex(path: Path, index: Int): List[String] = {
-            if (path.length == 0) path
-            else
-              path.updated(path.length - 1, path(path.length - 1) + s"[${index}]")
-          }
-
-          def traverseArray(
-            arr: Seq[IN],
-            path: Path): Either[NonEmptyList[ExtractionError], List[t]] = {
-            val arrayApplied: Seq[Either[NonEmptyList[ExtractionError], t]] =
-              arr.zipWithIndex.map(jValue =>
-                valueF(Some(jValue._1), appendArrayInex(path, jValue._2)))
-
-            arrayApplied
-              .foldLeft[Either[NonEmptyList[ExtractionError], List[t]]](Right(List.empty))((b, v) =>
-                (b, v) match {
-                  case (Right(a), Right(i)) => Right(a :+ i)
-                  case (Left(a), Left(b))   => Left(a ::: b)
-                  case (Left(x), _)         => Left(x)
-                  case (_, Left(x))         => Left(x)
-              })
-          }
-
-          (inOpt: Option[IN], path: Path) =>
-            {
-              for {
-                in <- inOpt.toRight(NonEmptyList.one(RequiredValue(path, Left(op))))
-                arr <- extractArray(op)(in, path)
-                listOfIn <- traverseArray(arr, path)
-              } yield listOfIn
-            }
-        case fd: FloatData =>
-          required(Left(fd), fd.validations, extractFloat(Left(fgo)))
-        case dd: DoubleData =>
-          required(Left(dd), dd.validations, extractDouble(Left(fgo)))
-        case sd: ShortData =>
-          required(Left(sd), sd.validations, extractShort(Left(fgo)))
-        case op: BigDecimalData =>
-          required(Left(op), op.validations, extractBigDecimal(Left(fgo)))
-        case op: EnumerationData[e, A] =>
-          (inOpt: Option[IN], path: Path) =>
-            for {
-              in <- inOpt.toRight[NonEmptyList[ExtractionError]](
-                NonEmptyList.one(RequiredValue(path, Left(op))))
-              str <- extractString(Left(fgo), op.manifestOfA.runtimeClass)(in, path)
-              enum <- stringToEnumeration[e, A](str, path, op.enumeration.asInstanceOf[e])(
-                op.manifestOfA)
-            } yield enum.asInstanceOf[A]
-
-        case op: KvpHListValue[ALG, h, hl] @unchecked => {
-          val fg: (IN, List[String]) => Either[NonEmptyList[ExtractionError], h] =
-            kvpHList(op.kvpHList, extendedValidator)
-          (jsonOpt: Option[IN], path: Path) =>
-            {
-              jsonOpt match {
-                case Some(json) =>
-                  fg(json, path)
-                    .flatMap(res => vu.validate[h](op.validations)(res, path))
-                    .map(_.asInstanceOf[A])
-                case None => Left(NonEmptyList.one(RequiredValue(path, Left(op))))
-              }
-            }
-        }
-        case co: KvpCoproductValue[ALG, c] @unchecked => {
-          val fCo = kvpCoproduct(co.kvpCoproduct, extendedValidator)
-          (jsonOpt: Option[IN], path: Path) =>
-            {
-              jsonOpt match {
-                case Some(json) => {
-                  stringValue(json, coproductTypeKey) match {
-                    case Some(coType) => fCo(json, path, coType).map(_.asInstanceOf[A])
-                    case None =>
-                      Left(
-                        NonEmptyList.one(
-                          SumTypeError(path, s"Missing parameter ${coproductTypeKey}")))
-                  }
-
-                }
-                case None => Left(NonEmptyList.one(RequiredValue(path, Left(co))))
-              }
-            }
-        }
-        case x: HListConvert[ALG, a, al, A] @unchecked => {
-          val kvp = kvpHList(x.from, extendedValidator)
-          (jOpt: Option[IN], path: Path) =>
-            jOpt match {
-              case None    => Left(NonEmptyList.one(RequiredValue(path, Left(x))))
-              case Some(j) => kvp(j, path).map(x.fHtoA(_))
-            }
-        }
-        case co: KvpCoproductConvert[ALG, a, c] @unchecked => {
-          val fCo = kvpCoproduct(co.from, extendedValidator)
-          (jOpt: Option[IN], path: Path) =>
-            jOpt match {
-              case None => Left(NonEmptyList.one(RequiredValue(path, Left(co))))
-              case Some(j) => {
-                stringValue(j, coproductTypeKey) match {
-                  case None =>
-                    Left(NonEmptyList.one(RequiredValue(coproductTypeKey :: path, Left(co))))
-                  case Some(coproductType) => fCo(j, path, coproductType).map(co.cToA(_))
-                }
-              }
-            }
-        }
-      }
-    result
-  }
 
 }

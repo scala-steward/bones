@@ -8,10 +8,10 @@ import cats.implicits._
 import com.bones.Util
 import com.bones.data.Error._
 import com.bones.data.KeyValueDefinition.CoproductDataDefinition
-import com.bones.data.custom.CNilF
+import com.bones.data.algebra.CNilF
 import com.bones.data.{KvpCoNil, KvpCoproduct, KvpSingleValueLeft, _}
 import com.bones.syntax.NoAlgebra
-import com.bones.validation.ValidationDefinition.ValidationOp
+import com.bones.validation.algebra.ScalaCoreValidation.ValidationOp
 import com.bones.validation.{ValidationUtil => vu}
 import com.google.protobuf.{CodedInputStream, InvalidProtocolBufferException, Timestamp}
 import shapeless.{:+:, Coproduct, HList, HNil, Inl, Inr, Nat}

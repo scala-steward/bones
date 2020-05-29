@@ -1,13 +1,13 @@
-package com.bones.validation.custom
+package com.bones.validation.algebra
 
-import com.bones.data.custom.AllCustomAlgebras
+import com.bones.data.algebra.AllAlgebras
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatestplus.scalacheck.Checkers
 import java.time.Instant
 
 class MultiAlgebraTest extends AnyFunSuite with Checkers {
 
-  import com.bones.data.custom.AllCustomSyntax._
+  import com.bones.data.algebra.AllAlgebrasSyntax._
   import com.bones.syntax._
 
 
@@ -17,7 +17,7 @@ class MultiAlgebraTest extends AnyFunSuite with Checkers {
     ("email", email()) :>:
     ("instant", instant(jt_i.min(Instant.parse("2007-12-03T10:15:30.00Z")))) :>:
     ("description", string) :<:
-    kvpNilCov[AllCustomAlgebras]
+    kvpNilCov[AllAlgebras]
 
   case class MultiAlgebra(email: String, instant: Instant, description: String)
 

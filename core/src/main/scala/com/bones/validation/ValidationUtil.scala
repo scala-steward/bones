@@ -3,7 +3,7 @@ package com.bones.validation
 import cats.data.NonEmptyList
 import cats.implicits._
 import com.bones.data.Error.ValidationError
-import com.bones.validation.ValidationDefinition.ValidationOp
+import com.bones.validation.algebra.ScalaCoreValidation.ValidationOp
 
 import scala.annotation.tailrec
 

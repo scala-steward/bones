@@ -2,7 +2,7 @@ package com.bones.interpreter.custom
 
 import java.time.format.DateTimeFormatter
 
-import com.bones.data.custom._
+import com.bones.data.algebra._
 import com.bones.interpreter.KvpInterchangeFormatEncoderInterpreter
 import com.bones.interpreter.KvpInterchangeFormatEncoderInterpreter.InterchangeFormatEncoder
 

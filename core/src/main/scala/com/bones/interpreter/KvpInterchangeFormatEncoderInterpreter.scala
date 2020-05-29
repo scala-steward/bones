@@ -3,11 +3,9 @@ package com.bones.interpreter
 import java.time.format.DateTimeFormatter
 import java.time.{LocalDate, LocalDateTime, LocalTime}
 
-import com.bones.data.KeyValueDefinition.CoproductDataDefinition
-import com.bones.data.custom.CNilF
+import com.bones.data.algebra.{CNilF, HListConvert}
 import com.bones.data.{KeyValueDefinition, KvpCoNil, KvpCoproduct, KvpSingleValueLeft, _}
 import com.bones.interpreter.KvpInterchangeFormatValidatorInterpreter.CoproductType
-import com.bones.syntax.NoAlgebra
 import shapeless.{:+:, Coproduct, HList, Inl, Inr, Nat}
 
 object KvpInterchangeFormatEncoderInterpreter {
@@ -44,11 +42,6 @@ object KvpInterchangeFormatEncoderInterpreter {
 
   trait InterchangeFormatEncoder[ALG[_], OUT] {
     def encode[A](alg: ALG[A]): A => OUT
-  }
-
-  case class NoAlgebraEncoder[OUT]() extends InterchangeFormatEncoder[NoAlgebra, OUT] {
-    override def encode[A](alg: NoAlgebra[A]): A => OUT =
-      sys.error("Unreachable code")
   }
 
   /**
@@ -100,15 +93,10 @@ trait KvpInterchangeFormatEncoderInterpreter[OUT] {
     * @tparam A
     * @return
     */
-  def encoderFromCustomSchema[ALG[_], A](
+  def encoderFromSchema[ALG[_], A](
     bonesSchema: BonesSchema[ALG, A],
     covEncoder: InterchangeFormatEncoder[ALG, OUT]
-  ): A => OUT = bonesSchema match {
-    case x: HListConvert[ALG, _, _, A] => valueDefinition(x, covEncoder)
-  }
-
-  def encoderFromSchema[A](bonesSchema: BonesSchema[NoAlgebra, A]) =
-    encoderFromCustomSchema[NoAlgebra, A](bonesSchema, NoAlgebraEncoder[OUT]())
+  ): A => OUT = covEncoder.encode(bonesSchema.alg)
 
   def none: OUT
 
@@ -165,7 +153,7 @@ trait KvpInterchangeFormatEncoderInterpreter[OUT] {
         (input: C) =>
           ("", empty)
       case co: KvpSingleValueLeft[ALG, l, r] =>
-        val fl: l => OUT = determineValueDefinition(co.kvpValue, encoder)
+        val fl: l => OUT = encoder.encode(co.kvpValue)
         val fr: r => (CoproductType, OUT) = kvpCoproduct(co.kvpTail, encoder)
         (input: C) =>
           input match {
@@ -195,7 +183,7 @@ trait KvpInterchangeFormatEncoderInterpreter[OUT] {
             combine(headOut, tailOut)
           }
       case op: KvpSingleValueHead[ALG, h, t, tl, H] =>
-        val valueF = determineValueDefinition(op.fieldDefinition.dataDefinition, encoder)
+        val valueF = encoder.encode(op.fieldDefinition.dataDefinition)
         val tailF = kvpHList(op.tail, encoder)
         implicit val hCons = op.isHCons
         (input: H) =>
@@ -206,7 +194,7 @@ trait KvpInterchangeFormatEncoderInterpreter[OUT] {
             combine(toObj(op.fieldDefinition, val1), tail)
           }
       case op: KvpConcreteTypeHead[ALG, H, ht, nt] @unchecked => {
-        val headF = encoderFromCustomSchema(op.bonesSchema, encoder)
+        val headF = encoderFromSchema(op.bonesSchema, encoder)
         val tailF = kvpHList(op.tail, encoder)
         implicit val hCons = op.isHCons
         (input: H) =>
@@ -218,90 +206,6 @@ trait KvpInterchangeFormatEncoderInterpreter[OUT] {
       }
     }
 
-  protected def determineValueDefinition[ALG[_], A](
-    dataDefinition: Either[KvpValue[A], ALG[A]],
-    algEncoder: InterchangeFormatEncoder[ALG, OUT]
-  ): A => OUT = {
-    dataDefinition match {
-      case Left(kvp)  => valueDefinition(kvp, algEncoder)
-      case Right(cov) => algEncoder.encode[A](cov)
-    }
-  }
 
-  protected def valueDefinition[ALG[_], A](
-    fgo: KvpValue[A],
-    encoder: InterchangeFormatEncoder[ALG, OUT]
-  ): A => OUT =
-    fgo match {
-      case op: OptionalKvpValueDefinition[ALG, b] @unchecked =>
-        val valueF = determineValueDefinition(op.valueDefinitionOp, encoder)
-        (input: A) =>
-          {
-            input match {
-              case Some(x) => valueF(x)
-              case None    => none
-            }
-          }
-      case ob: BooleanData => booleanToOut
-      case rs: StringData  => stringToOut
-      case id: IntData     => intToOut
-      case ri: LongData    => longToOut
-      case uu: UuidData =>
-        uuid =>
-          stringToOut(uuid.toString)
-      case dd: LocalDateTimeData => dateTimeToOut
-      case ld: LocalDateData     => localDateToOut
-      case lt: LocalTimeData     => localTimeToOut
-      case fd: FloatData         => floatToOut
-      case dd: DoubleData        => doubleToOut
-      case sd: ShortData         => shortToOut
-      case bd: BigDecimalData    => bigDecimalToOut
-      case ba: ByteArrayData     => byteArrayToOut
-      case ld: ListData[ALG, t] @unchecked => {
-        val itemToOut = determineValueDefinition(ld.tDefinition, encoder)
-        (input: List[t]) =>
-          {
-            val listOfJson = input.map(itemToOut)
-            toOutList(listOfJson)
-          }
-      }
-      case either: EitherData[ALG, a, b] @unchecked =>
-        val aF = determineValueDefinition(either.definitionA, encoder)
-        val bF = determineValueDefinition(either.definitionB, encoder)
-        (input: A) =>
-          {
-            input match {
-              case Left(aInput)  => aF(aInput)
-              case Right(bInput) => bF(bInput)
-            }
-          }
-      case e: EnumerationData[e, a] => {
-        implicit val v = e.manifestOfA
-        enum =>
-          stringToOut(enum.toString)
-      }
-      case gd: KvpHListValue[ALG, h, hl] @unchecked =>
-        val fh = kvpHList(gd.kvpHList, encoder)
-        input =>
-          fh(input.asInstanceOf[h])
-      case x: HListConvert[ALG, h, hl, A] @unchecked =>
-        val fh = kvpHList(x.from, encoder)
-        input: A =>
-          {
-            fh(x.fAtoH(input))
-          }
-      case c: KvpCoproductValue[ALG, c] @unchecked =>
-        val fc = kvpCoproduct(c.kvpCoproduct, encoder)
-        input =>
-          val (name, out) = fc.apply(input.asInstanceOf[c])
-          addStringField(out, coproductTypeKey, name)
-      case c: KvpCoproductConvert[ALG, c, a] @unchecked =>
-        val fc = kvpCoproduct(c.from, encoder)
-        input: A =>
-          {
-            val (name, out) = fc(c.aToC(input))
-            addStringField(out, coproductTypeKey, name)
-          }
-    }
 
 }

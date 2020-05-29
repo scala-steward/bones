@@ -1,6 +1,7 @@
 package com.bones.data
 
-import com.bones.validation.ValidationDefinition.ValidationOp
+import com.bones.data.HasManifest.AlgebraWithManifest
+import com.bones.validation.algebra.ScalaCoreValidation.ValidationOp
 
 /**
   * Various Errors for use in Bones interpreters.
@@ -66,11 +67,8 @@ object Error {
   object RequiredValue {
     def apply[ALG[_], A](
       path: List[String],
-      dataDefinition: Either[KvpValue[A], ALG[A]]): RequiredValue[A] = {
-      val description: String = dataDefinition match {
-        case Left(x)  => x.manifestOfA.runtimeClass.getSimpleName
-        case Right(x) => x.getClass.getSimpleName
-      }
+      dataDefinition: AlgebraWithManifest[ALG, A]): RequiredValue[A] = {
+      val description: String = dataDefinition.manifestOfA.runtimeClass.getSimpleName
       RequiredValue(path, description)
     }
   }

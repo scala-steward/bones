@@ -8,7 +8,7 @@ import cats.Applicative
 import cats.data.NonEmptyList
 import cats.implicits._
 import com.bones.data.KeyValueDefinition.CoproductDataDefinition
-import com.bones.data.custom.CNilF
+import com.bones.data.algebra.CNilF
 import com.bones.data.{KvpCoNil, KvpCoproduct, KvpSingleValueLeft, _}
 import com.bones.syntax.NoAlgebra
 import com.google.protobuf.{CodedOutputStream, Timestamp}

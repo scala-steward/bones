@@ -1,6 +1,6 @@
 package com.bones.swagger.custom
 
-import com.bones.data.custom._
+import com.bones.data.algebra._
 import com.bones.swagger.SwaggerCoreInterpreter
 import com.bones.swagger.SwaggerCoreInterpreter.{CustomSwaggerInterpreter, Name}
 import io.swagger.v3.oas.models.media.{EmailSchema, Schema}

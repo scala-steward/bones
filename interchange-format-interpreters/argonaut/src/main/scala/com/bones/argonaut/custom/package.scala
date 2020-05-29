@@ -3,7 +3,7 @@ package com.bones.argonaut
 import java.time.format.DateTimeFormatter
 
 import argonaut.Json
-import com.bones.data.custom.{AllCustomAlgebras, CustomStringCoproduct}
+import com.bones.data.algebra.{AllAlgebras, CustomStringCoproduct}
 import com.bones.interpreter.KvpInterchangeFormatEncoderInterpreter.InterchangeFormatEncoder
 import com.bones.interpreter.KvpInterchangeFormatEncoderInterpreter.InterchangeFormatEncoder.CNilInterchangeFormatEncoder
 import com.bones.interpreter.KvpInterchangeFormatValidatorInterpreter.InterchangeFormatValidator
@@ -15,12 +15,12 @@ package object custom {
 
 
   // Encoder for the coproduct of all custom algebras
-  val allEncoders: InterchangeFormatEncoder[AllCustomAlgebras, Json] =
+  val allEncoders: InterchangeFormatEncoder[AllAlgebras, Json] =
     ArgonautIsoJavaTimeEncoder ++
       (CustomStringEncoder ++ CNilInterchangeFormatEncoder[Json](): InterchangeFormatEncoder[CustomStringCoproduct, Json])
 
   // Validator for the coproduct of all custom algebras
-  val allValidators: InterchangeFormatValidator[AllCustomAlgebras, Json] =
+  val allValidators: InterchangeFormatValidator[AllAlgebras, Json] =
     ArgonautIsoJavaTimeValidator ++
       (CustomStringValidator ++ CNilInterchangeFormatValidator[Json](): InterchangeFormatValidator[CustomStringCoproduct, Json])
 

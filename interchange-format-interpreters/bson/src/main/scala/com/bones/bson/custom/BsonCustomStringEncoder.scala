@@ -1,6 +1,6 @@
 package com.bones.bson.custom
 
-import com.bones.data.custom.CustomStringValue
+import com.bones.data.algebra.CustomStringValue
 import com.bones.interpreter.KvpInterchangeFormatEncoderInterpreter.InterchangeFormatEncoder
 import reactivemongo.bson.{BSONString, BSONValue}
 

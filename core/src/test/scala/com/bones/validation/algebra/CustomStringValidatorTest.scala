@@ -1,8 +1,8 @@
-package com.bones.validation.custom
+package com.bones.validation.algebra
 
 import java.util.UUID
 
-import com.bones.data.custom.CustomStringValue
+import com.bones.data.algebra.CustomStringValue
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatestplus.scalacheck.Checkers
 

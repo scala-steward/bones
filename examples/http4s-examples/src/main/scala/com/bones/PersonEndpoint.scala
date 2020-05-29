@@ -4,7 +4,7 @@ import cats.effect.IO
 import com.bones.fullstack.LocalhostAllIOApp
 import com.bones.fullstack.LocalhostAllIOApp._
 import com.bones.syntax._
-import com.bones.validation.ValidationDefinition.{IntValidation => iv, StringValidation => sv}
+import com.bones.validation.algebra.ScalaCoreValidation.{IntValidation => iv, StringValidation => sv}
 import com.zaxxer.hikari.HikariDataSource
 import org.http4s.HttpRoutes
 

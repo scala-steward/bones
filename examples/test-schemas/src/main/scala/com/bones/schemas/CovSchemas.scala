@@ -6,7 +6,7 @@ import java.util.UUID
 import com.bones.schemas.CovSumTypeExample.{Digital, MusicMedium}
 import com.bones.syntax._
 import com.bones.schemas.Schemas.AllSupported
-import com.bones.validation.ValidationDefinition.ValidationOp
+import com.bones.validation.algebra.ScalaCoreValidation.ValidationOp
 import shapeless.{:+:, CNil, HNil, Inl, Inr}
 
 object CovSchemas {

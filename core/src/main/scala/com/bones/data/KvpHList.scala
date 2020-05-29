@@ -1,11 +1,11 @@
 package com.bones.data
 
-import com.bones.validation.ValidationDefinition.ValidationOp
-import shapeless.{::, Generic, HList, HNil, Nat, Succ}
+import com.bones.data.algebra.HListConvert
+import com.bones.validation.algebra.ScalaCoreValidation.ValidationOp
 import shapeless.ops.hlist
 import shapeless.ops.hlist.IsHCons.Aux
 import shapeless.ops.hlist.{IsHCons, Length, Prepend, Split, Tupler}
-import shapeless.syntax.std.tuple._
+import shapeless.{::, Generic, HList, HNil, Nat, Succ}
 
 /**
   * Base trait of a ValueDefinition where the value is a list of data.
@@ -79,37 +79,15 @@ sealed abstract class KvpHList[ALG[_], H <: HList, N <: Nat] {
     * @tparam A The wrapped type
     * @return KvpSingleValueHead prefixed to this HList
     */
-  def :>:[A](input: (String, ALG[A]))(
+  def ::[A](input: (String, ALG[A]))(
     implicit isHCons: IsHCons.Aux[A :: H, A, H]): KvpSingleValueHead[ALG, A, H, N, A :: H] =
-    prependSingleValue(KeyValueDefinition(input._1, Right(input._2), None, None))(isHCons)
+    prependSingleValue(KeyValueDefinition(input._1, input._2, None, None))(isHCons)
 
-  /**
-    * Use this operator when you want to prefix a custom algebra with a description
-    * @param input The Key, Value Pair and Description, Example to Add to the front of the KvpHList
-    * @param isHCons The implied ability to cons (and unapply) A to and from H
-    * @tparam A The wrapped type
-    * @return KvpSingleValueHead prefixed to this HList
-    */
-  def :>:[A](input: (String, ALG[A], String, A))(
-    implicit isHCons: IsHCons.Aux[A :: H, A, H]): KvpSingleValueHead[ALG, A, H, N, A :: H] =
-    prependSingleValue(
-      KeyValueDefinition(input._1, Right(input._2), Some(input._3), Some(input._4)))(isHCons)
 
-  /**
-    * Prefixes a one of the core types to this HLIst
-    * @param input The Key, Value Pair to Add to the front of the KvpHList
-    * @param isHCons The implied ability to cons (and unapply) A to and from H
-    * @tparam A The wrapped type
-    * @return KvpSingleValueHead prefixed to this HList
-    */
-  def :<:[A](input: (String, KvpValue[A]))(
-    implicit isHCons: Aux[A :: H, A, H]): KvpSingleValueHead[ALG, A, H, N, A :: H] =
-    prependSingleValue(new KeyValueDefinition(input._1, Left(input._2), None, None))(isHCons)
-
-  def :<:[A](input: (String, KvpValue[A], String, A))(
+  def ::[A](input: (String, ALG[A], String, A))(
     implicit isHCons: Aux[A :: H, A, H]): KvpSingleValueHead[ALG, A, H, N, A :: H] =
     prependSingleValue(
-      new KeyValueDefinition(input._1, Left(input._2), Some(input._3), Some(input._4)))(isHCons)
+      new KeyValueDefinition(input._1, input._2, Some(input._3), Some(input._4)))(isHCons)
 
   def :><:[OUT2 <: HList, OUT2L <: Nat, A: Manifest, HX <: HList, NX <: Nat](
     dc: BonesSchema[ALG, A])(

@@ -1,18 +1,13 @@
 package com.bones.data
 
-import com.bones.validation.ValidationDefinition.ValidationOp
+import com.bones.data.algebra.KvpCoproductConvert
+import com.bones.validation.algebra.ScalaCoreValidation.ValidationOp
 import shapeless.{:+:, CNil, Coproduct, Generic}
 
 sealed abstract class KvpCoproduct[ALG[_], C <: Coproduct] { self =>
 
-  def :+:[B: Manifest](head: Either[KvpValue[B], ALG[B]]): KvpSingleValueLeft[ALG, B, C] =
+  def :+:[B: Manifest](head: ALG[B]): KvpSingleValueLeft[ALG, B, C] =
     KvpSingleValueLeft(head, this, manifest[B])
-
-  def :<+:[B: Manifest](head: KvpValue[B]): KvpSingleValueLeft[ALG, B, C] =
-    KvpSingleValueLeft(Left(head), this, manifest[B])
-
-  def :+>:[B: Manifest](head: ALG[B]): KvpSingleValueLeft[ALG, B, C] =
-    KvpSingleValueLeft(Right(head), this, manifest[B])
 
   /** Convert a Coproduct into an object with validation on the object. */
   def convert[A: Manifest](validation: ValidationOp[A]*)(
@@ -37,7 +32,7 @@ case class KvpCoNil[ALG[_]]() extends KvpCoproduct[ALG, CNil]
   * @tparam R The remaining part of the coproduct.  This class
   */
 case class KvpSingleValueLeft[ALG[_], A, R <: Coproduct](
-  kvpValue: Either[KvpValue[A], ALG[A]],
+  kvpValue: ALG[A],
   kvpTail: KvpCoproduct[ALG, R],
   manifestL: Manifest[A]
 ) extends KvpCoproduct[ALG, A :+: R] {}

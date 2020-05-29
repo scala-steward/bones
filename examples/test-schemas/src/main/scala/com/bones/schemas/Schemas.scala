@@ -5,7 +5,7 @@ import java.util.UUID
 
 import com.bones.schemas.SumTypeExample.MusicMedium
 import com.bones.syntax._
-import com.bones.validation.ValidationDefinition.ValidationOp
+import com.bones.validation.algebra.ScalaCoreValidation.ValidationOp
 import shapeless.HNil
 
 object Schemas {

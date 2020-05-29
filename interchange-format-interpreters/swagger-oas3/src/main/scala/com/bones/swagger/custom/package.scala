@@ -1,13 +1,13 @@
 package com.bones.swagger
 import java.time.format.DateTimeFormatter
 
-import com.bones.data.custom.{AllCustomAlgebras, CustomStringCoproduct}
+import com.bones.data.algebra.{AllAlgebras, CustomStringCoproduct}
 import com.bones.swagger.SwaggerCoreInterpreter.CustomSwaggerInterpreter
 import com.bones.swagger.SwaggerCoreInterpreter.CustomSwaggerInterpreter.CNilCustomSwaggerInterpreter
 
 package object custom {
 
-  val allInterpreters: CustomSwaggerInterpreter[AllCustomAlgebras] =
+  val allInterpreters: CustomSwaggerInterpreter[AllAlgebras] =
     SwaggerIsoJavaTimeInterpreter ++
       (DefaultCustomStringInterpreter ++ CNilCustomSwaggerInterpreter: CustomSwaggerInterpreter[
         CustomStringCoproduct])

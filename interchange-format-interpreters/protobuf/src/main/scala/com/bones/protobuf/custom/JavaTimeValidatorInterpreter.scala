@@ -5,7 +5,7 @@ import java.time._
 import cats.data.NonEmptyList
 import com.bones.data.Error.{CanNotConvert, ExtractionError}
 import com.bones.data.{HListConvert, KvpValue, Sugar}
-import com.bones.data.custom._
+import com.bones.data.algebra._
 import com.bones.protobuf.ProtobufSequentialValidatorInterpreter.{
   ExtractFromProto,
   LastFieldNumber,
@@ -18,7 +18,7 @@ import com.bones.protobuf.{
   ProtobufSequentialValidatorInterpreter
 }
 import com.bones.syntax.NoAlgebra
-import com.bones.validation.ValidationDefinition.ValidationOp
+import com.bones.validation.algebra.ScalaCoreValidation.ValidationOp
 import com.bones.validation.ValidationUtil
 import com.google.protobuf.CodedInputStream
 import shapeless.HNil

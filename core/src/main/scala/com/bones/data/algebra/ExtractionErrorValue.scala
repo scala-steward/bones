@@ -1,8 +1,7 @@
-package com.bones.data.custom
+package com.bones.data.algebra
 
 import com.bones.data.Error._
 import com.bones.data.KvpSingleValueLeft
-import com.bones.syntax.kvpCoNilCov
 import shapeless.{:+:, CNil}
 
 sealed abstract class ExtractionErrorValue[T]
@@ -19,7 +18,7 @@ case object WrongTypeErrorData extends ExtractionErrorValue[WrongTypeError[_]]
 /**
   * Provides convenience methods for creating ExtractionErrorValue types.
   */
-trait ExtractionErrorValueSugar {
+trait ExtractionErrorValueSugar extends ScalaContainerValueSugar {
 
   val canNotConvert: ExtractionErrorValue[CanNotConvert[_, _]] = CanNotConvertData
   val notFound: ExtractionErrorValue[NotFound[_]] = NotFoundData
@@ -35,7 +34,7 @@ trait ExtractionErrorValueSugar {
     NotFound[_] :+: ParsingError :+: RequiredValue[
       _
     ] :+: SumTypeError :+: ValidationError[_] :+: WrongTypeError[_] :+: CNil] =
-    canNotConvert :+>: notFound :+>: parsingError :+>: requiredValue :+>: sumTypeError :+>:
-      validationError :+>: wrongTypeError :+>: kvpCoNilCov[ExtractionErrorValue]
+    canNotConvert :+: notFound :+: parsingError :+: requiredValue :+: sumTypeError :+:
+      validationError :+: wrongTypeError :+: kvpCoNil[ExtractionErrorValue]
 
 }

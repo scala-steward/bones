@@ -3,10 +3,10 @@ package com.bones.swagger.custom
 import java.time._
 import java.time.format.DateTimeFormatter
 
-import com.bones.data.custom._
+import com.bones.data.algebra._
 import com.bones.swagger.SwaggerCoreInterpreter
 import com.bones.swagger.SwaggerCoreInterpreter.{CustomSwaggerInterpreter, Name}
-import com.bones.validation.ValidationDefinition.ValidationOp
+import com.bones.validation.algebra.ScalaCoreValidation.ValidationOp
 import io.swagger.v3.oas.models.media.Schema
 
 import scala.collection.JavaConverters._

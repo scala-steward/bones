@@ -3,12 +3,12 @@ package com.bones.scalacheck
 import java.time._
 import java.util.UUID
 
-import com.bones.data.custom.CNilF
+import com.bones.data.algebra.CNilF
 import com.bones.data.{KvpCoNil, KvpCoproduct, KvpSingleValueLeft, _}
 import com.bones.interpreter.KvpInterchangeFormatEncoderInterpreter.InterchangeFormatEncoder
 import com.bones.syntax.NoAlgebra
-import com.bones.validation.ValidationDefinition.StringValidation._
-import com.bones.validation.ValidationDefinition._
+import com.bones.validation.algebra.ScalaCoreValidation.StringValidation._
+import com.bones.validation.algebra.ScalaCoreValidation._
 import com.bones.validation.ValidationUtil
 import org.scalacheck.Arbitrary.arbitrary
 import org.scalacheck.Gen.Choose

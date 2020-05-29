@@ -5,11 +5,11 @@ import java.time.format.{DateTimeFormatter, DateTimeParseException}
 
 import cats.data.NonEmptyList
 import com.bones.data.Error
-import com.bones.data.Error.{CanNotConvert, RequiredValue}
-import com.bones.data.custom._
+import com.bones.data.Error.{CanNotConvert, ExtractionError, RequiredValue}
+import com.bones.data.algebra._
 import com.bones.interpreter.KvpInterchangeFormatValidatorInterpreter
 import com.bones.interpreter.KvpInterchangeFormatValidatorInterpreter.InterchangeFormatValidator
-import com.bones.validation.ValidationDefinition.ValidationOp
+import com.bones.validation.algebra.ScalaCoreValidation.ValidationOp
 import com.bones.validation.ValidationUtil
 
 object JavaTimeValidator {
@@ -76,8 +76,36 @@ trait JavaTimeValidator[OUT] extends InterchangeFormatValidator[JavaTimeValue, O
   val zonedDateTimeFormatter: DateTimeFormatter
   val baseValidator: KvpInterchangeFormatValidatorInterpreter[OUT]
 
-  override def validate[A](alg: JavaTimeValue[A])
-    : (Option[OUT], List[String]) => Either[NonEmptyList[Error.ExtractionError], A] = {
+  def localDateTimeFormatter: DateTimeFormatter
+  def localDateFormatter: DateTimeFormatter
+  def localTimeFormatter: DateTimeFormatter
+
+  override def extractLocalDateTime[ALG[_], A](dataDefinition: ALG[A])(
+    in: OUT,
+    path: List[String]): Either[NonEmptyList[ExtractionError], LocalDateTime] = {
+    extractString(dataDefinition, classOf[LocalDateTime])(in, path)
+      .flatMap(stringToLocalDateTime(_, localDateTimeFormatter, path))
+  }
+
+  override def extractLocalDate[ALG[_], A](dataDefinition: ALG[A])(
+    in: OUT,
+    path: List[String]): Either[NonEmptyList[ExtractionError], LocalDate] = {
+    extractString(dataDefinition, classOf[LocalDate])(in, path)
+      .flatMap(stringToLocalDate(_, localDateFormatter, path))
+  }
+
+  override def extractLocalTime[ALG[_], A](dataDefinition: ALG[A], baseInterpreter: KvpInterchangeFormatValidatorInterpreter[OUT])(
+    in: OUT,
+    path: List[String]): Either[NonEmptyList[ExtractionError], LocalTime] = {
+    baseInterpreter.extractString(dataDefinition, classOf[LocalTime])(in, path)
+      .flatMap(stringToLocalTime(_, localTimeFormatter, path))
+  }
+
+
+  override def validate[A](
+                            alg: JavaTimeValue[A],
+                            baseInterpreter: KvpInterchangeFormatValidatorInterpreter[OUT]
+                          ): (Option[OUT], List[String]) => Either[NonEmptyList[ExtractionError], A] =
 
     alg match {
       case d: DateTimeExceptionData =>

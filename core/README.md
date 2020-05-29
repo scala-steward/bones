@@ -11,7 +11,7 @@ See the [Value](src/main/scala/com/bones/data/KvpValue.scala) file for more info
 
 # Supported Validation
 
-See the [ValidationDefinition](src/main/scala/com/bones/validation/ValidationDefinition.scala) file 
+See the [ValidationDefinition](src/main/scala/com/bones/validation/ScalaCoreValidation.scala) file 
 for a list of supported types.
 
 

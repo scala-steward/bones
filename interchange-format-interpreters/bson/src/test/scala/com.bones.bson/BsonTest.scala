@@ -5,7 +5,7 @@ import java.time._
 import com.bones.data.{KvpValue, LocalDateTimeData}
 import com.bones.scalacheck.{GenAlg, Scalacheck, ScalacheckBase}
 import com.bones.schemas.Schemas._
-import com.bones.validation.ValidationDefinition.LocalDateTimeValidationInstances
+import com.bones.validation.algebra.ScalaCoreValidation.LocalDateTimeValidationInstances
 import org.scalacheck.Gen.Choose
 import org.scalacheck.{Arbitrary, Gen}
 import org.scalatest.funsuite.AnyFunSuite

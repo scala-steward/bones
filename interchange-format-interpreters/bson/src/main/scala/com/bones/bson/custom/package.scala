@@ -2,7 +2,7 @@ package com.bones.bson
 
 import java.time.format.DateTimeFormatter
 
-import com.bones.data.custom.{AllCustomAlgebras, CustomStringCoproduct}
+import com.bones.data.algebra.{AllAlgebras, CustomStringCoproduct}
 import com.bones.interpreter.KvpInterchangeFormatEncoderInterpreter.InterchangeFormatEncoder
 import com.bones.interpreter.KvpInterchangeFormatEncoderInterpreter.InterchangeFormatEncoder.CNilInterchangeFormatEncoder
 import com.bones.interpreter.KvpInterchangeFormatValidatorInterpreter.InterchangeFormatValidator
@@ -14,11 +14,11 @@ import reactivemongo.bson.BSONValue
 package object custom {
 
 
-  val allEncoders: InterchangeFormatEncoder[AllCustomAlgebras, BSONValue] =
+  val allEncoders: InterchangeFormatEncoder[AllAlgebras, BSONValue] =
     IsoBsonJavaTimeEncoder ++
       (DefaultBsonCustomStringEncoder ++ CNilInterchangeFormatEncoder[BSONValue](): InterchangeFormatEncoder[CustomStringCoproduct, BSONValue])
 
-  val allValidators: InterchangeFormatValidator[AllCustomAlgebras, BSONValue] =
+  val allValidators: InterchangeFormatValidator[AllAlgebras, BSONValue] =
     IsoBsonJavaTimeValidator ++
       (DefaultBsonCustomStringValidator ++ CNilInterchangeFormatValidator[BSONValue](): InterchangeFormatValidator[CustomStringCoproduct, BSONValue])
 

@@ -1,10 +1,10 @@
 package com.bones.validation
 
-import com.bones.validation.ValidationDefinition.StringValidation.{custom => customStrValidation, _}
+import com.bones.validation.algebra.ScalaCoreValidation.StringValidation.{custom => customStrValidation, _}
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatestplus.scalacheck.Checkers
 
-class ValidationDefinitionTest extends AnyFunSuite with Checkers {
+class ScalaCoreValidationTest extends AnyFunSuite with Checkers {
 
   test("valid values") {
     val validValues = Vector("The", "Quick", "Brown", "Fox")

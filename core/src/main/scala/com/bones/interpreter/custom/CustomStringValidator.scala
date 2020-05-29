@@ -3,7 +3,7 @@ package com.bones.interpreter.custom
 import cats.data.NonEmptyList
 import com.bones.data.Error
 import com.bones.data.Error.RequiredValue
-import com.bones.data.custom.CustomStringValue
+import com.bones.data.algebra.CustomStringValue
 import com.bones.interpreter.KvpInterchangeFormatValidatorInterpreter
 import com.bones.interpreter.KvpInterchangeFormatValidatorInterpreter.InterchangeFormatValidator
 import com.bones.validation.ValidationUtil

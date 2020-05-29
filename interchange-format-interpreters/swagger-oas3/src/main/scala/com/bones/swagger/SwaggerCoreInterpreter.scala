@@ -4,10 +4,10 @@ import java.time.format.DateTimeFormatter
 import java.time.{LocalDate, LocalDateTime, LocalTime}
 import java.util.{Base64, UUID}
 
-import com.bones.data.custom.CNilF
+import com.bones.data.algebra.CNilF
 import com.bones.data.{KvpCoNil, KvpCoproduct, KvpSingleValueLeft, _}
 import com.bones.syntax.NoAlgebra
-import com.bones.validation.ValidationDefinition.{
+import com.bones.validation.algebra.ScalaCoreValidation.{
   InvalidValue,
   ValidValue,
   ValidationOp,

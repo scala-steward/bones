@@ -1,6 +1,6 @@
 package com.bones.protobuf
 
-import com.bones.data.custom.{AllCustomAlgebras, CustomStringCoproduct}
+import com.bones.data.algebra.{AllAlgebras, CustomStringCoproduct}
 import com.bones.protobuf.ProtoFileGeneratorInterpreter.CustomInterpreter
 import com.bones.protobuf.ProtoFileGeneratorInterpreter.CustomInterpreter.CNilProtoFileCustomInterpreterEncoder
 import com.bones.protobuf.ProtobufSequentialEncoderInterpreter.CustomEncoderInterpreter
@@ -10,17 +10,17 @@ import com.bones.protobuf.ProtobufSequentialValidatorInterpreter.CustomValidator
 
 package object custom {
 
-  def allEncoders[A]: CustomEncoderInterpreter[AllCustomAlgebras] =
+  def allEncoders[A]: CustomEncoderInterpreter[AllAlgebras] =
     ProtobufUtcJavaTimeEncoder ++
       (CustomStringEncoderInterpreter ++ CNilCustomEncoder: CustomEncoderInterpreter[
         CustomStringCoproduct])
 
-  val allValidators: CustomValidatorInterpreter[AllCustomAlgebras] =
+  val allValidators: CustomValidatorInterpreter[AllAlgebras] =
     ProtobufUtcJavaTimeValidator ++
       (CustomStringValidatorInterpreter ++ CNilCustomValidatorEncoder: CustomValidatorInterpreter[
         CustomStringCoproduct])
 
-  val allProtoFiles: ProtoFileGeneratorInterpreter.CustomInterpreter[AllCustomAlgebras] =
+  val allProtoFiles: ProtoFileGeneratorInterpreter.CustomInterpreter[AllAlgebras] =
     JavaTimeProtoFileInterpreter ++
       (CustomStringProtoFileInterpreter ++ CNilProtoFileCustomInterpreterEncoder: CustomInterpreter[
         CustomStringCoproduct])

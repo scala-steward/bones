@@ -1,6 +1,6 @@
 package com.bones.interpreter.custom
 
-import com.bones.data.custom.CustomStringValue
+import com.bones.data.algebra.CustomStringValue
 import com.bones.interpreter.KvpInterchangeFormatEncoderInterpreter
 import com.bones.interpreter.KvpInterchangeFormatEncoderInterpreter.InterchangeFormatEncoder
 

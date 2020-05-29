@@ -2,7 +2,7 @@ package com.bones.circe
 
 import java.time.format.DateTimeFormatter
 
-import com.bones.data.custom.{AllCustomAlgebras, CustomStringCoproduct}
+import com.bones.data.algebra.{AllAlgebras, CustomStringCoproduct}
 import com.bones.interpreter.KvpInterchangeFormatEncoderInterpreter.InterchangeFormatEncoder
 import com.bones.interpreter.KvpInterchangeFormatEncoderInterpreter.InterchangeFormatEncoder.CNilInterchangeFormatEncoder
 import com.bones.interpreter.KvpInterchangeFormatValidatorInterpreter.InterchangeFormatValidator
@@ -13,11 +13,11 @@ import io.circe.Json
 
 package object custom {
 
-  val allEncoders: InterchangeFormatEncoder[AllCustomAlgebras, Json] =
+  val allEncoders: InterchangeFormatEncoder[AllAlgebras, Json] =
     BaseCirceIsoJavaTimeEncoder ++
       (CustomStringEncoder ++ CNilInterchangeFormatEncoder[Json](): InterchangeFormatEncoder[CustomStringCoproduct, Json])
 
-  val allValidators: InterchangeFormatValidator[AllCustomAlgebras, Json] =
+  val allValidators: InterchangeFormatValidator[AllAlgebras, Json] =
     BaseCirceIsoJavaTimeValidator ++
       (CustomStringValidator ++ CNilInterchangeFormatValidator[Json](): InterchangeFormatValidator[CustomStringCoproduct, Json])
 

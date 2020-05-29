@@ -4,7 +4,7 @@ import java.time.format.DateTimeFormatter
 import java.time.{Instant, OffsetDateTime, OffsetTime}
 
 import com.bones.bson.BsonEncoderInterpreter
-import com.bones.data.custom._
+import com.bones.data.algebra._
 import com.bones.interpreter.KvpInterchangeFormatEncoderInterpreter.InterchangeFormatEncoder
 import reactivemongo.bson.{BSONDateTime, BSONValue}
 

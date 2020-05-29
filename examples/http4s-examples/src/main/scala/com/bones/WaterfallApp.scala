@@ -4,7 +4,7 @@ import cats.effect.IO
 import com.bones.data.KvpNil
 import com.bones.fullstack.LocalhostAllIOApp
 import com.bones.syntax._
-import com.bones.validation.ValidationDefinition.{
+import com.bones.validation.algebra.ScalaCoreValidation.{
   BigDecimalValidation => dv,
   LongValidation => lv,
   StringValidation => sv

@@ -2,7 +2,7 @@ package com.bones.protobuf
 
 import com.bones.data.{KvpCoNil, KvpCoproduct, KvpSingleValueLeft}
 import com.bones.data._
-import com.bones.data.custom.CNilF
+import com.bones.data.algebra.CNilF
 import com.bones.syntax.NoAlgebra
 import shapeless.{:+:, Coproduct, HList, Inl, Inr, Nat}
 

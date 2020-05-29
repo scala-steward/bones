@@ -1,9 +1,9 @@
 package com.bones.validation
 
-import com.bones.validation.ValidationDefinition.BigDecimalValidation._
+import com.bones.validation.algebra.ScalaCoreValidation.BigDecimalValidation._
 import org.scalacheck.Prop._
 import org.scalatestplus.scalacheck.Checkers
-import com.bones.validation.ValidationDefinition.ValidValue
+import com.bones.validation.algebra.ScalaCoreValidation.ValidValue
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.funsuite.AnyFunSuite
 

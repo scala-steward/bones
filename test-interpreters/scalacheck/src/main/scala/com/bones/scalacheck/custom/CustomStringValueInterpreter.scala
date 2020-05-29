@@ -2,7 +2,7 @@ package com.bones.scalacheck.custom
 
 import java.nio.charset.StandardCharsets
 
-import com.bones.data.custom._
+import com.bones.data.algebra._
 import com.bones.scalacheck.{GenAlg, Scalacheck}
 import com.bones.validation.ValidationUtil
 import org.scalacheck.Gen

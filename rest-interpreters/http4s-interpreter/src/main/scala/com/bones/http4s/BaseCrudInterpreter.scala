@@ -7,7 +7,7 @@ import com.bones.bson.{BsonEncoderInterpreter, BsonValidatorInterpreter}
 import com.bones.circe.{CirceEncoderInterpreter, CirceValidatorInterpreter, IsoCirceEncoderAndValidatorInterpreter}
 import com.bones.data.{BonesSchema, HListConvert, KeyValueDefinition, KvpCoproductConvert}
 import com.bones.data.Error.ExtractionError
-import com.bones.data.custom.ExtractionErrorValue
+import com.bones.data.algebra.ExtractionErrorValue
 import com.bones.interpreter.custom.ExtractionErrorEncoder
 import com.bones.protobuf.{ProtoFileGeneratorInterpreter, ProtobufSequentialEncoderInterpreter, ProtobufSequentialValidatorInterpreter, ProtobufUtcSequentialEncoderAndValidator}
 import io.circe.Json

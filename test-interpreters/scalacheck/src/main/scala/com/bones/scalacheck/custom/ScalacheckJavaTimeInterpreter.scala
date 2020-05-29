@@ -2,10 +2,10 @@ package com.bones.scalacheck.custom
 
 import java.time._
 
-import com.bones.data.custom._
+import com.bones.data.algebra._
 import com.bones.scalacheck.{GenAlg, Scalacheck}
-import com.bones.validation.ValidationDefinition.{ValidValue, ValidationOp}
-import com.bones.validation.custom.JavaTimeValidation._
+import com.bones.validation.algebra.ScalaCoreValidation.{ValidValue, ValidationOp}
+import com.bones.validation.algebra.JavaTimeValidation._
 import org.scalacheck.Gen
 import org.scalacheck.Gen.Choose
 

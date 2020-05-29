@@ -1,11 +1,11 @@
-package com.bones.data.custom
+package com.bones.data.algebra
 
 import java.time._
 
-import com.bones.data.{AlgToCollectionData, HasManifest}
-import com.bones.validation.ValidationDefinition.ValidationOp
-import com.bones.validation.custom.JavaTimeValidation
-import com.bones.validation.custom.JavaTimeValidation._
+import com.bones.data.HasManifest
+import com.bones.validation.algebra.ScalaCoreValidation.ValidationOp
+import com.bones.validation.algebra.JavaTimeValidation
+import com.bones.validation.algebra.JavaTimeValidation._
 import shapeless.Coproduct
 import shapeless.ops.coproduct.Inject
 
@@ -13,70 +13,68 @@ sealed abstract class JavaTimeValue[A: Manifest] extends HasManifest[A] {
   val manifestOfA: Manifest[A] = manifest[A]
 }
 
-/** Note that Deserializing DateTimeException, although support throughout, will contain a misleading stack trace.  This is because
+/** Note that deserializing DateTimeException, although support throughout, will contain a misleading stack trace.  This is because
   * it is impossible to create a new DateTimeException without suppressing the stack trace.  This class is type
   * is mainly here for Serialization. */
 final case class DateTimeExceptionData(validations: List[ValidationOp[DateTimeException]])
     extends JavaTimeValue[DateTimeException]
-    with AlgToCollectionData[JavaTimeValue, DateTimeException, DateTimeExceptionData]
 
 final case class DayOfWeekData(validations: List[ValidationOp[DayOfWeek]])
     extends JavaTimeValue[DayOfWeek]
-    with AlgToCollectionData[JavaTimeValue, DayOfWeek, DayOfWeekData]
 
 final case class DurationData(validations: List[ValidationOp[Duration]])
     extends JavaTimeValue[Duration]
-    with AlgToCollectionData[JavaTimeValue, Duration, DurationData]
 
 final case class InstantData(validations: List[ValidationOp[Instant]])
     extends JavaTimeValue[Instant]
-    with AlgToCollectionData[JavaTimeValue, Instant, InstantData]
+
+final case class LocalDateTimeData(validations: List[ValidationOp[LocalDateTime]])
+  extends JavaTimeValue[LocalDateTime]
+
+final case class LocalDateData(validations: List[ValidationOp[LocalDate]])
+  extends JavaTimeValue[LocalDate]
+
+final case class LocalTimeData(validations: List[ValidationOp[LocalTime]])
+  extends JavaTimeValue[LocalTime]
 
 final case class MonthData(validations: List[ValidationOp[Month]])
     extends JavaTimeValue[Month]
-    with AlgToCollectionData[JavaTimeValue, Month, MonthData]
 
 final case class MonthDayData(validations: List[ValidationOp[MonthDay]])
     extends JavaTimeValue[MonthDay]
-    with AlgToCollectionData[JavaTimeValue, MonthDay, MonthDayData]
 
 final case class OffsetDateTimeData(validations: List[ValidationOp[OffsetDateTime]])
     extends JavaTimeValue[OffsetDateTime]
-    with AlgToCollectionData[JavaTimeValue, OffsetDateTime, OffsetDateTimeData]
 
 final case class OffsetTimeData(validations: List[ValidationOp[OffsetTime]])
     extends JavaTimeValue[OffsetTime]
-    with AlgToCollectionData[JavaTimeValue, OffsetTime, OffsetTimeData]
 
 final case class PeriodData(validations: List[ValidationOp[Period]])
     extends JavaTimeValue[Period]
-    with AlgToCollectionData[JavaTimeValue, Period, PeriodData]
 
 final case class YearData(validations: List[ValidationOp[Year]])
     extends JavaTimeValue[Year]
-    with AlgToCollectionData[JavaTimeValue, Year, YearData]
 
 final case class YearMonthData(validations: List[ValidationOp[YearMonth]])
     extends JavaTimeValue[YearMonth]
-    with AlgToCollectionData[JavaTimeValue, YearMonth, YearMonthData]
 
 final case class ZonedDateTimeData(validations: List[ValidationOp[ZonedDateTime]])
     extends JavaTimeValue[ZonedDateTime]
-    with AlgToCollectionData[JavaTimeValue, ZonedDateTime, ZonedDateTimeData]
 
 final case class ZoneIdData(validations: List[ValidationOp[ZoneId]])
     extends JavaTimeValue[ZoneId]
-    with AlgToCollectionData[JavaTimeValue, ZoneId, ZoneIdData]
 
 final case class ZoneOffsetData(validations: List[ValidationOp[ZoneOffset]])
     extends JavaTimeValue[ZoneOffset]
-    with AlgToCollectionData[JavaTimeValue, ZoneOffset, ZoneOffsetData]
 
 trait JavaTimeValidationSugar {
 
   val jt_dow: JavaTimeValidation.DayOfWeekValidation.type = DayOfWeekValidation
   val jt_d: JavaTimeValidation.DurationValidation.type = DurationValidation
   val jt_i: JavaTimeValidation.InstantValidation.type = InstantValidation
+  val jt_ld: JavaTimeValidation.LocalDateValidation.type = LocalDateValidation
+  val jt_ldt: JavaTimeValidation.LocalDateTimeValidation.type = LocalDateTimeValidation
+  val jt_lt: JavaTimeValidation.LocalTimeValidation.type = LocalTimeValidation
   val jt_m: JavaTimeValidation.MonthValidations.type = MonthValidations
   val jt_md: JavaTimeValidation.MonthDayValidations.type = MonthDayValidations
   val jt_odt: JavaTimeValidation.OffsetDateTimeValidations.type = OffsetDateTimeValidations
@@ -108,6 +106,20 @@ trait JavaTimeValueSugar extends JavaTimeValidationSugar {
 
   def instant(validations: ValidationOp[Instant]*): InstantData = InstantData(validations.toList)
   val instant: InstantData = instant()
+
+  /** Indicates that the data tied to this key is a Date type with the specified format that must pass the specified validations. */
+  def localDateTime(v: ValidationOp[LocalDateTime]*): LocalDateTimeData =
+    LocalDateTimeData(v.toList)
+
+  val localDateTime: LocalDateTimeData = LocalDateTimeData(List.empty)
+
+  def localDate(v: ValidationOp[LocalDate]*): LocalDateData = LocalDateData(v.toList)
+
+  val localDate: LocalDateData = LocalDateData(List.empty)
+
+  def localTime(v: ValidationOp[LocalTime]*): LocalTimeData = LocalTimeData(v.toList)
+
+  val localTime: LocalTimeData = localTime()
 
   def month(validations: ValidationOp[Month]*): MonthData = MonthData(validations.toList)
   val month: MonthData = month()
@@ -149,6 +161,7 @@ trait JavaTimeValueSugar extends JavaTimeValidationSugar {
 /** Adds smart constructors to lift our GADT into a multi-algebra coproduct */
 trait JavaTimeValueSugarInjected[ALG[_] <: Coproduct] extends JavaTimeValidationSugar {
 
+  /** Defines the context (the coproduct) of which we are Injecting definitions of this algebra into. */
   def javaTimeInject[A]: Inject[ALG[A], JavaTimeValue[A]]
 
   def dateTimeException(validations: ValidationOp[DateTimeException]*): ALG[DateTimeException] =

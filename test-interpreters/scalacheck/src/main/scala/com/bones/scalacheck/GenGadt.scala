@@ -1,8 +1,8 @@
 package com.bones.scalacheck
 
 import com.bones.data.{KeyValueDefinition, _}
-import com.bones.validation.ValidationDefinition.StringValidation.{MaxLength, Trimmed}
-import com.bones.validation.ValidationDefinition.ValidationOp
+import com.bones.validation.algebra.ScalaCoreValidation.StringValidation.{MaxLength, Trimmed}
+import com.bones.validation.algebra.ScalaCoreValidation.ValidationOp
 import org.scalacheck.Gen
 import shapeless.ops.hlist.IsHCons
 import shapeless.{::, HList, Nat, Succ}
