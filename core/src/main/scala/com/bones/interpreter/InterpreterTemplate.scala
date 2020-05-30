@@ -33,22 +33,8 @@ class InterpreterTemplate {
   def valueDefinition[A](fgo: KvpValue[A]): Unit =
     fgo match {
       case op: OptionalKvpValueDefinition[alg, a] => ???
-      case ob: BooleanData                        => ???
-      case rs: StringData                         => ???
-      case id: IntData                            => ???
-      case ri: LongData                           => ???
-      case uu: UuidData                           => ???
-      case dd: LocalDateTimeData                  => ???
-      case ld: LocalDateData                      => ???
-      case lt: LocalTimeData                      => ???
-      case fd: FloatData                          => ???
-      case sd: ShortData                          => ???
-      case id: DoubleData                         => ???
-      case bd: BigDecimalData                     => ???
       case ld: ListData[alg, t]                   => ???
       case ed: EitherData[alg, a, b]              => ???
-      case ba: ByteArrayData                      => ???
-      case esd: EnumerationData[a, b]             => ???
       case kvp: KvpHListValue[alg, h, hl]         => ???
       case co: KvpCoproductValue[alg, c]          => ???
       case x: HListConvert[alg, a, al, b]         => ???

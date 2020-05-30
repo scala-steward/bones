@@ -1,23 +1,31 @@
 package com.bones.data
 
-import java.time.{LocalDate, LocalDateTime, LocalTime}
-import java.util.UUID
-
 import com.bones.syntax.NoAlgebra
 import com.bones.validation.ValidationDefinition.ValidationOp
 import shapeless.ops.hlist.Tupler
 import shapeless.{Coproduct, Generic, HList, Nat}
 
 /**
-  * If a custom algera mixin in this trait, it's subtypes can mix in AlgToCollectionData.
+  * If a custom algebra mixin in this trait, it's subtypes can mix in AlgToCollectionData.
   * @tparam A The type of the Wrapped Value
   */
 trait HasManifest[A] {
   val manifestOfA: Manifest[A]
 }
+object HasManifest {
+  implicit class ToCollection[ALG[_] <: HasManifest[A], A: Manifest](hm: ALG[A]) { self =>
+    def list(validationOps: ValidationOp[List[A]]*) =
+      ListData[ALG, A](Right(hm), validationOps.toList)
+
+    def optional =
+      OptionalKvpValueDefinition(Right(hm))
+  }
+}
 
 object CustomAlgebra {
   type CustomAlgebraWithManifest[ALG[_], A] = ALG[A] with HasManifest[A]
+
+
 }
 
 import CustomAlgebra._
@@ -28,10 +36,6 @@ import CustomAlgebra._
   */
 sealed abstract class KvpValue[A: Manifest] extends HasManifest[A] {
   val manifestOfA: Manifest[A] = manifest[A]
-}
-
-object KvpValue {
-  type Path = List[String]
 }
 
 /** Wraps a data definition to mark the field optional */
@@ -80,24 +84,12 @@ trait AlgToCollectionData[ALG[_], B, SELF <: CustomAlgebraWithManifest[ALG, B]]
     with AlgToListData[ALG, B, SELF] { self: SELF =>
 }
 
-/** Schema type for Boolean Data */
-final case class BooleanData(validations: List[ValidationOp[Boolean]])
-    extends KvpValue[Boolean]
-    with ToCollectionData[Boolean] {}
-
 final case class EitherData[ALG[_], A: Manifest, B: Manifest](
   definitionA: Either[KvpValue[A], ALG[A]],
   definitionB: Either[KvpValue[B], ALG[B]])
     extends KvpValue[Either[A, B]]
     with ToCollectionData[Either[A, B]] {}
 
-final case class IntData(validations: List[ValidationOp[Int]])
-    extends KvpValue[Int]
-    with ToCollectionData[Int]
-
-final case class LongData(validations: List[ValidationOp[Long]])
-    extends KvpValue[Long]
-    with ToCollectionData[Long]
 
 final case class ListData[ALG[_], T: Manifest](
   tDefinition: Either[KvpValue[T], ALG[T]],
@@ -105,54 +97,6 @@ final case class ListData[ALG[_], T: Manifest](
     extends KvpValue[List[T]]
     with ToOptionalData[List[T]]
 
-final case class ShortData(validations: List[ValidationOp[Short]])
-    extends KvpValue[Short]
-    with ToCollectionData[Short]
-
-final case class StringData(validations: List[ValidationOp[String]])
-    extends KvpValue[String]
-    with ToCollectionData[String]
-
-final case class FloatData(validations: List[ValidationOp[Float]])
-    extends KvpValue[Float]
-    with ToCollectionData[Float]
-
-final case class DoubleData(validations: List[ValidationOp[Double]])
-    extends KvpValue[Double]
-    with ToCollectionData[Double]
-
-final case class BigDecimalData(validations: List[ValidationOp[BigDecimal]])
-    extends KvpValue[BigDecimal]
-    with ToCollectionData[BigDecimal]
-
-/** base64-encoded characters, for example,
-  * @example "U3dhZ2dlciByb2Nrcw=="
-  * */
-final case class ByteArrayData(validations: List[ValidationOp[Array[Byte]]])
-    extends KvpValue[Array[Byte]]
-    with ToCollectionData[Array[Byte]]
-
-final case class LocalDateTimeData(validations: List[ValidationOp[LocalDateTime]])
-    extends KvpValue[LocalDateTime]
-    with ToCollectionData[LocalDateTime]
-
-final case class LocalDateData(validations: List[ValidationOp[LocalDate]])
-    extends KvpValue[LocalDate]
-    with ToCollectionData[LocalDate]
-
-final case class LocalTimeData(validations: List[ValidationOp[LocalTime]])
-    extends KvpValue[LocalTime]
-    with ToCollectionData[LocalTime]
-
-final case class UuidData(validations: List[ValidationOp[UUID]])
-    extends KvpValue[UUID]
-    with ToCollectionData[UUID]
-
-final case class EnumerationData[E <: Enumeration, V: Manifest](
-  enumeration: E,
-  validations: List[ValidationOp[V]]
-) extends KvpValue[V]
-    with ToCollectionData[V] {}
 
 /** Represents a type where the value is an HList */
 final case class KvpHListValue[ALG[_], H <: HList: Manifest, HL <: Nat](

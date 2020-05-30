@@ -33,7 +33,7 @@ object BaseCrudInterpreter {
     private val stringToIdErrorHList =
       ("input", string()) :<:
         ("errorMessage", string()) :<:
-        kvpNilCov[NoAlgebra]
+        kvpNil[NoAlgebra]
 
     val stringToIdErrorSchema =
       stringToIdErrorHList.convert[StringToIdError]
@@ -101,7 +101,7 @@ object BaseCrudInterpreter {
             .convert[ExtractionError](
               manifest[ExtractionError],
               ExtractionErrorEncoder.extractionErrorGeneric)
-        )) :<: kvpNilCov[ExtractionErrorValue]
+        )) :<: kvpNil[ExtractionErrorValue]
 
     val errorResponseSchema = errorResponseHList.convert[ErrorResponse]
   }
@@ -156,10 +156,10 @@ object BaseCrudInterpreter {
     schema: BonesSchema[ALG, A]) = schema match {
       case h: HListConvert[ALG, _, _, A] @unchecked =>
         implicit val manifest: Manifest[A] = h.manifestOfA
-        (idDefinition >>: h :><: com.bones.syntax.kvpNilCov[ALG]).tupled[(ID, A)]
+        (idDefinition >>: h :><: com.bones.syntax.kvpNil[ALG]).tupled[(ID, A)]
       case co: KvpCoproductConvert[ALG, _, A] @unchecked =>
         implicit val manifest: Manifest[A] = co.manifestOfA
-        (idDefinition >>: co :><: com.bones.syntax.kvpNilCov[ALG]).tupled[(ID, A)]
+        (idDefinition >>: co :><: com.bones.syntax.kvpNil[ALG]).tupled[(ID, A)]
 
     }
 

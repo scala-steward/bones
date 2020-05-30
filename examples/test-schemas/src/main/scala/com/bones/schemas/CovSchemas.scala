@@ -325,7 +325,7 @@ object CovSchemas {
         ("tags", list(string())) :<:
         ("publishDate", a2(instant)) :>:
         ("content", a1(markdown)) :>:
-        kvpNilCov[BlogAlgebra]
+        kvpNil[BlogAlgebra]
 
     val blogPostSchema = baseSchema.convert[BlogPost]
   }

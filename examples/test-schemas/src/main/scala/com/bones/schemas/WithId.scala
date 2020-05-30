@@ -11,10 +11,10 @@ object WithId {
                                             schema: BonesSchema[ALG, A]) = schema match {
     case h: HListConvert[ALG, _, _, A] @unchecked =>
       implicit val manifest: Manifest[A] = h.manifestOfA
-      (idDefinition >>: h :><: com.bones.syntax.kvpNilCov[ALG]).tupled[(ID, A)]
+      (idDefinition >>: h :><: com.bones.syntax.kvpNil[ALG]).tupled[(ID, A)]
     case co: KvpCoproductConvert[ALG, _, A] @unchecked =>
       implicit val manifest: Manifest[A] = co.manifestOfA
-      (idDefinition >>: co :><: com.bones.syntax.kvpNilCov[ALG]).tupled[(ID, A)]
+      (idDefinition >>: co :><: com.bones.syntax.kvpNil[ALG]).tupled[(ID, A)]
 
   }
 

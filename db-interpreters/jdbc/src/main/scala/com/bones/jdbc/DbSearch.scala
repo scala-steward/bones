@@ -51,7 +51,7 @@ object DbSearch {
         val tableName = camelToSnake(x.manifestOfA.runtimeClass.getSimpleName)
         implicit val manifest: Manifest[b] = x.manifestOfA
         val schemaWithId =
-          (DbUtil.longIdKeyValueDef[ALG] >>: x :><: com.bones.syntax.kvpNilCov[ALG])
+          (DbUtil.longIdKeyValueDef[ALG] >>: x :><: com.bones.syntax.kvpNil[ALG])
             .tupled[(Long, A)]
 
         val resultSetF: ResultSet => Either[NonEmptyList[ExtractionError], (Long, A)] =

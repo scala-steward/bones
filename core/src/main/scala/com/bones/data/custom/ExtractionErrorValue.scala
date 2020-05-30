@@ -2,7 +2,7 @@ package com.bones.data.custom
 
 import com.bones.data.Error._
 import com.bones.data.KvpSingleValueLeft
-import com.bones.syntax.kvpCoNilCov
+import com.bones.syntax.kvpCoNil
 import shapeless.{:+:, CNil}
 
 sealed abstract class ExtractionErrorValue[T]
@@ -36,6 +36,6 @@ trait ExtractionErrorValueSugar {
       _
     ] :+: SumTypeError :+: ValidationError[_] :+: WrongTypeError[_] :+: CNil] =
     canNotConvert :+>: notFound :+>: parsingError :+>: requiredValue :+>: sumTypeError :+>:
-      validationError :+>: wrongTypeError :+>: kvpCoNilCov[ExtractionErrorValue]
+      validationError :+>: wrongTypeError :+>: kvpCoNil[ExtractionErrorValue]
 
 }

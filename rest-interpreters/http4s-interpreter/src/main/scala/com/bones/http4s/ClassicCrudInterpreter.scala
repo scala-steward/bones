@@ -285,7 +285,7 @@ case class ClassicCrudInterpreter[ALG[_], A, E, F[_], ID: Manifest](
   val schemaWithId = schema match {
     case h: HListConvert[ALG, _, _, A] @unchecked =>
       implicit val manifest: Manifest[A] = h.manifestOfA
-      (idDefinition >>: h :><: com.bones.syntax.kvpNilCov[ALG]).tupled[(ID, A)]
+      (idDefinition >>: h :><: com.bones.syntax.kvpNil[ALG]).tupled[(ID, A)]
   }
   val encodeToCirceInterpreter = IsoCirceEncoderAndValidatorInterpreter
   val validatedFromCirceInterpreter = IsoCirceEncoderAndValidatorInterpreter

@@ -57,7 +57,7 @@ object DbGet {
       case xMap: HListConvert[ALG, a, al, b] => {
         implicit val x = xMap.manifestOfA
         val schemaWithId =
-          (DbUtil.longIdKeyValueDef[ALG] >>: schema :><: com.bones.syntax.kvpNilCov[ALG])
+          (DbUtil.longIdKeyValueDef[ALG] >>: schema :><: com.bones.syntax.kvpNil[ALG])
             .tupled[(Long, A)]
 
         id =>

@@ -1,6 +1,7 @@
 package com
 
-import com.bones.data.{KeyValueDefinitionSugar, Sugar}
+import com.bones.data.custom.AllCustomSyntax
+import com.bones.data.{HasManifest, KeyValueDefinitionSugar, ListData, OptionalKvpValueDefinition, Sugar}
 import com.bones.validation.ValidationDefinition._
 
 /**
@@ -8,46 +9,22 @@ import com.bones.validation.ValidationDefinition._
   */
 package object bones {
 
+  type Path = List[String]
+
+  implicit class ToCollection[ALG[_], A: Manifest](hm: ALG[A]) { self =>
+//    implicit val man = manifest[A]
+    def list(validationOps: ValidationOp[List[A]]*) =
+      ListData[ALG, A](Right(hm), validationOps.toList)
+
+    def optional =
+      OptionalKvpValueDefinition[ALG,A](Right(hm))
+  }
+
   /** So we can just import com.bones.syntax._ */
-  object syntax extends Sugar with KeyValueDefinitionSugar {
+  object syntax extends Sugar with AllCustomSyntax {
 
     /** This type is useful when we are not dealing with a custom algebra. */
     type NoAlgebra[A] = Nothing
-
-    /** sv = String Validation */
-    val sv = StringValidation
-
-    /** lv = Long validation */
-    val lv = LongValidation
-
-    /** iv = Int validation */
-    val iv = IntValidation
-
-    /** bdv = Big Decimal Validation */
-    val bdv = BigDecimalValidation
-
-    /** fv = Float Validation */
-    val fv = FloatValidation
-
-    /** cv = Char Validation */
-    val cv = CharValidation
-
-    /** bv = Byte Validation */
-    val bv = ByteValidation
-
-    /** shv = Short Validation */
-    val shv = ShortValidation
-
-    /** dv = double validation */
-    val dv = DoubleValidation
-
-    /** ldtv = LocalDateTimeValidationInstances */
-    val ldtv = LocalDateTimeValidationInstances
-
-    /** ldv = LocalDateValidationInstances */
-    val ldv = LocalDateValidationInstances
-
-    def ev[E <: Enumeration] = EnumerationValidation[E]
 
   }
 

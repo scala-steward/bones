@@ -1,13 +1,8 @@
 package com.bones.interpreter
 
-import java.time.format.DateTimeFormatter
-import java.time.{LocalDate, LocalDateTime, LocalTime}
-
-import com.bones.data.KeyValueDefinition.CoproductDataDefinition
 import com.bones.data.custom.CNilF
 import com.bones.data.{KeyValueDefinition, KvpCoNil, KvpCoproduct, KvpSingleValueLeft, _}
 import com.bones.interpreter.KvpInterchangeFormatValidatorInterpreter.CoproductType
-import com.bones.syntax.NoAlgebra
 import shapeless.{:+:, Coproduct, HList, Inl, Inr, Nat}
 
 object KvpInterchangeFormatEncoderInterpreter {
@@ -46,37 +41,6 @@ object KvpInterchangeFormatEncoderInterpreter {
     def encode[A](alg: ALG[A]): A => OUT
   }
 
-  case class NoAlgebraEncoder[OUT]() extends InterchangeFormatEncoder[NoAlgebra, OUT] {
-    override def encode[A](alg: NoAlgebra[A]): A => OUT =
-      sys.error("Unreachable code")
-  }
-
-  /**
-    * Convert the date types to a string using a date formatter and the output type becomes
-    * a string.  This is useful for all JSON encodings.
-    *
-    * @tparam OUT The JSON type from whatever library.
-    */
-  trait DateToStringEncoder[OUT] {
-    self: KvpInterchangeFormatEncoderInterpreter[OUT] =>
-
-    def localDateTimeFormatter: DateTimeFormatter
-
-    def localDateFormatter: DateTimeFormatter
-
-    def localTimeFormatter: DateTimeFormatter
-
-    override def dateTimeToOut: LocalDateTime => OUT =
-      input => self.stringToOut(localDateTimeFormatter.format(input))
-
-    override def localTimeToOut: LocalTime => OUT =
-      input => self.stringToOut(localTimeFormatter.format(input))
-
-    override def localDateToOut: LocalDate => OUT =
-      input => self.stringToOut(localDateFormatter.format(input))
-
-  }
-
 }
 
 /**
@@ -107,9 +71,6 @@ trait KvpInterchangeFormatEncoderInterpreter[OUT] {
     case x: HListConvert[ALG, _, _, A] => valueDefinition(x, covEncoder)
   }
 
-  def encoderFromSchema[A](bonesSchema: BonesSchema[NoAlgebra, A]) =
-    encoderFromCustomSchema[NoAlgebra, A](bonesSchema, NoAlgebraEncoder[OUT]())
-
   def none: OUT
 
   def empty: OUT
@@ -134,13 +95,6 @@ trait KvpInterchangeFormatEncoderInterpreter[OUT] {
 
   /** Create a function which converts a Long into the specific OUT type */
   def longToOut: Long => OUT
-
-  /** Create a function which converts a LocalDateTime into the specific OUT type */
-  def dateTimeToOut: LocalDateTime => OUT
-
-  def localDateToOut: LocalDate => OUT
-
-  def localTimeToOut: LocalTime => OUT
 
   def floatToOut: Float => OUT
 
@@ -242,21 +196,6 @@ trait KvpInterchangeFormatEncoderInterpreter[OUT] {
               case None    => none
             }
           }
-      case ob: BooleanData => booleanToOut
-      case rs: StringData  => stringToOut
-      case id: IntData     => intToOut
-      case ri: LongData    => longToOut
-      case uu: UuidData =>
-        uuid =>
-          stringToOut(uuid.toString)
-      case dd: LocalDateTimeData => dateTimeToOut
-      case ld: LocalDateData     => localDateToOut
-      case lt: LocalTimeData     => localTimeToOut
-      case fd: FloatData         => floatToOut
-      case dd: DoubleData        => doubleToOut
-      case sd: ShortData         => shortToOut
-      case bd: BigDecimalData    => bigDecimalToOut
-      case ba: ByteArrayData     => byteArrayToOut
       case ld: ListData[ALG, t] @unchecked => {
         val itemToOut = determineValueDefinition(ld.tDefinition, encoder)
         (input: List[t]) =>
@@ -275,11 +214,6 @@ trait KvpInterchangeFormatEncoderInterpreter[OUT] {
               case Right(bInput) => bF(bInput)
             }
           }
-      case e: EnumerationData[e, a] => {
-        implicit val v = e.manifestOfA
-        enum =>
-          stringToOut(enum.toString)
-      }
       case gd: KvpHListValue[ALG, h, hl] @unchecked =>
         val fh = kvpHList(gd.kvpHList, encoder)
         input =>

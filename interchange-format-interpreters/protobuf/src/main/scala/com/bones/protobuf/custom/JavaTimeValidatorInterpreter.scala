@@ -118,7 +118,7 @@ object JavaTimeValidatorInterpreter extends JavaTimeValueSugar with Sugar {
     * supported already.
     */
   val offsetDateTimeSchema =
-    (("localDateTime", localDateTime) :<: ("zoneOffset", zoneOffset) :>: kvpNilCov[JavaTimeValue])
+    (("localDateTime", localDateTime) :<: ("zoneOffset", zoneOffset) :>: kvpNil[JavaTimeValue])
       .xmap[OffsetDateTime](
         offsetFields => OffsetDateTime.of(offsetFields.head, offsetFields.tail.head),
         offset => offset.toLocalDateTime :: offset.getOffset :: HNil
@@ -128,7 +128,7 @@ object JavaTimeValidatorInterpreter extends JavaTimeValueSugar with Sugar {
     * supported already.
     */
   val offsetTimeSchema =
-    (("localDateTime", localTime) :<: ("zoneOffset", zoneOffset) :>: kvpNilCov[JavaTimeValue])
+    (("localDateTime", localTime) :<: ("zoneOffset", zoneOffset) :>: kvpNil[JavaTimeValue])
       .xmap[OffsetTime](
         offsetFields => OffsetTime.of(offsetFields.head, offsetFields.tail.head),
         offset => offset.toLocalTime :: offset.getOffset :: HNil
@@ -138,7 +138,7 @@ object JavaTimeValidatorInterpreter extends JavaTimeValueSugar with Sugar {
     * supported already.
     */
   val zonedDateTimeSchema =
-    (("localDateTime", localDateTime) :<: ("zoneId", zoneId) :>: kvpNilCov[JavaTimeValue])
+    (("localDateTime", localDateTime) :<: ("zoneId", zoneId) :>: kvpNil[JavaTimeValue])
       .xmap[ZonedDateTime](
         zonedFields => ZonedDateTime.of(zonedFields.head, zonedFields.tail.head),
         zonedDateTime => zonedDateTime.toLocalDateTime :: zonedDateTime.getZone :: HNil

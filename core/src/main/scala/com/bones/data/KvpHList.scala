@@ -79,7 +79,7 @@ sealed abstract class KvpHList[ALG[_], H <: HList, N <: Nat] {
     * @tparam A The wrapped type
     * @return KvpSingleValueHead prefixed to this HList
     */
-  def :>:[A](input: (String, ALG[A]))(
+  def ::[A](input: (String, ALG[A]))(
     implicit isHCons: IsHCons.Aux[A :: H, A, H]): KvpSingleValueHead[ALG, A, H, N, A :: H] =
     prependSingleValue(KeyValueDefinition(input._1, Right(input._2), None, None))(isHCons)
 
@@ -90,7 +90,7 @@ sealed abstract class KvpHList[ALG[_], H <: HList, N <: Nat] {
     * @tparam A The wrapped type
     * @return KvpSingleValueHead prefixed to this HList
     */
-  def :>:[A](input: (String, ALG[A], String, A))(
+  def ::[A](input: (String, ALG[A], String, A))(
     implicit isHCons: IsHCons.Aux[A :: H, A, H]): KvpSingleValueHead[ALG, A, H, N, A :: H] =
     prependSingleValue(
       KeyValueDefinition(input._1, Right(input._2), Some(input._3), Some(input._4)))(isHCons)
