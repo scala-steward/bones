@@ -96,7 +96,7 @@ sealed abstract class KvpHList[ALG[_], H <: HList, N <: Nat] {
       KeyValueDefinition(input._1, Right(input._2), Some(input._3), Some(input._4)))(isHCons)
 
   /**
-    * Prefixes a one of the core types to this HLIst
+    * Prefixes one of the Algebra types to this HLIst
     * @param input The Key, Value Pair to Add to the front of the KvpHList
     * @param isHCons The implied ability to cons (and unapply) A to and from H
     * @tparam A The wrapped type

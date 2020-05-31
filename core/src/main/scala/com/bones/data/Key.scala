@@ -1,6 +1,5 @@
 package com.bones.data
 
-import com.bones.syntax.NoAlgebra
 import com.bones.validation.ValidationDefinition.ValidationOp
 import shapeless.{Coproduct, HList, Nat}
 
@@ -10,7 +9,6 @@ import shapeless.{Coproduct, HList, Nat}
   * @param dataDefinition This is the GADT representing a value type, can be either from the core Algebra or a custom Algebra.
   * @tparam A This is the type which is "wrapped" by the GADT.
   * @tparam ALG Defines what algebra(s) we can use in a context.
-  *             It can be [[com.bones.syntax.NoAlgebra]] (aka Nothing -- only core algebra)
   *             It can be [[com.bones.data.custom.AllCustomSyntax]]  (aka everything supported in Bones).
   *             It can be a single custom algebra such as [[com.bones.data.custom.JavaTimeValue]]
   *             It can be any [[shapeless.Coproduct]] of Algebras.
@@ -50,9 +48,15 @@ trait KeyValueDefinitionSugar {
 }
 
 /** Starting point for obtaining a value definition. */
-trait Sugar {
+trait Sugar[ALG[_]] {
 
+  implicit class ToCollection[A: Manifest](hm: ALG[A]) { self =>
+    def list(validationOps: ValidationOp[List[A]]*) =
+      ListData[ALG, A](Right(hm), validationOps.toList)
 
+    def optional =
+      OptionalKvpValueDefinition[ALG,A](Right(hm))
+  }
 
   /**
     * Indicates that the data tied to this key is a list (JSON Array) type.  AllCustomAlgebras values are type
@@ -63,29 +67,52 @@ trait Sugar {
     * @tparam T The type of each element.  Can be an EitherFieldDefinition if more than one type is expected in the list.
     * @return
     */
-  def list[ALG[_], T: Manifest](
-    dataDefinitionOp: KvpValue[T],
+  def list[T: Manifest](
+    dataDefinitionOp: ALG[T],
     v: ValidationOp[List[T]]*
   ): ListData[ALG, T] =
-    ListData[ALG, T](Left(dataDefinitionOp), v.toList)
+    ListData[ALG, T](Right(dataDefinitionOp), v.toList)
+
+  def list[T: Manifest](
+    kvpValue: KvpValue[T],
+    v: ValidationOp[List[T]]*
+  ): ListData[ALG, T] =
+    ListData[ALG, T](Left(kvpValue), v.toList)
+
+  def either[A: Manifest, B: Manifest](
+    definitionA: ALG[A],
+    definitionB: ALG[B]
+  ): EitherData[ALG, A, B] =
+    EitherData(Right(definitionA), Right(definitionB))
 
   /** Indicates that the data tied to this key is a Date type with the specified format that must pass the specified validations. */
   def either[A: Manifest, B: Manifest](
     definitionA: KvpValue[A],
     definitionB: KvpValue[B]
-  ): EitherData[NoAlgebra, A, B] =
+  ): EitherData[ALG, A, B] =
     EitherData(Left(definitionA), Left(definitionB))
 
+  def either[A: Manifest, B: Manifest](
+    definitionA: KvpValue[A],
+    definitionB: ALG[B]
+  ): EitherData[ALG, A, B] =
+    EitherData(Left(definitionA), Right(definitionB))
+
+  def either[A: Manifest, B: Manifest](
+    definitionA: ALG[A],
+    definitionB: KvpValue[B]
+  ): EitherData[ALG, A, B] =
+    EitherData(Right(definitionA), Left(definitionB))
 
   /** Indicates that the data is a list of Key Value pairs */
-  def kvpHList[H <: HList: Manifest, HL <: Nat, ALG[_]](
+  def kvpHList[H <: HList: Manifest, HL <: Nat](
     kvpHList: KvpHList[ALG, H, HL],
     v: ValidationOp[H]*
   ): KvpHListValue[ALG, H, HL] =
     KvpHListValue(kvpHList, v.toList)
 
-  def kvpNil[ALG[_]] = new KvpNil[ALG]()
+  def kvpNil = new KvpNil[ALG]()
 
-  def kvpCoNil[ALG[_]] = new KvpCoNil[ALG]()
+  def kvpCoNil = new KvpCoNil[ALG]()
 
 }

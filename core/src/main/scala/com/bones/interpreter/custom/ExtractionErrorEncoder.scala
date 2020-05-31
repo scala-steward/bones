@@ -9,7 +9,7 @@ import shapeless.syntax.std.tuple._
 import shapeless.{:+:, ::, CNil, Generic, HNil, Inl, Inr}
 
 /** Define the core dsl components */
-object syntax extends Sugar with ScalaCoreSugar
+object syntax extends Sugar[ScalaCoreValue] with ScalaCoreSugar
 import com.bones.interpreter.custom.syntax._
 
 object ExtractionErrorEncoder {
@@ -30,7 +30,7 @@ object ExtractionErrorEncoder {
         ("input", string) ::
         ("expectedType", string) ::
         ("stackTrace", string.optional) :<:
-        kvpNil[ScalaCoreValue]
+        kvpNil
     ).xmap[CanNotConvert[_, _]](
       h => sys.error("Mapping to an ExtractionError is not supported"),
       canNotConvertToHList)
@@ -47,7 +47,7 @@ object ExtractionErrorEncoder {
       ("id", string) ::
         ("entityName", string) ::
         ("path", string) ::
-        kvpNil[ScalaCoreValue]
+        kvpNil
     ).xmap[NotFound[_]](
       h => sys.error("Mapping to an ExtractionError is not supported"),
       notFoundToHList)
@@ -60,7 +60,7 @@ object ExtractionErrorEncoder {
     (
       ("message", string) ::
         ("stacktrace", string.optional) :<:
-        kvpNil[ScalaCoreValue]
+        kvpNil
     ).xmap[ParsingError](
       h => sys.error("Mapping to an ParsingError is not supported"),
       parsingErrorToHList)
@@ -73,7 +73,7 @@ object ExtractionErrorEncoder {
     (
       ("path", string) ::
         ("problem", string) ::
-        kvpNil[ScalaCoreValue]
+        kvpNil
     ).xmap[SumTypeError](
       _ => sys.error("Mapping to a SumTypeError is not supported"),
       sumTypeErrorToHList)
@@ -90,7 +90,7 @@ object ExtractionErrorEncoder {
         ("errorMessage", string) ::
         ("stackTrace", string) ::
         ("message", string.optional) :<:
-        kvpNil[ScalaCoreValue]
+        kvpNil
     ).xmap[SystemError](
       _ => sys.error("Mapping to a SystemError is not supported"),
       systemErrorToHList)
@@ -105,7 +105,7 @@ object ExtractionErrorEncoder {
     (
       ("path", string) ::
         ("validationDescription", string) ::
-        kvpNil[ScalaCoreValue]
+        kvpNil
     ).xmap[ValidationError[_]](
       _ => sys.error("Mapping to a ValidationError is not supported"),
       validationErrorToHList)
@@ -131,7 +131,7 @@ object ExtractionErrorEncoder {
         ("expectedType", string) ::
         ("errorMessage", string.optional) :<:
         ("errorStackTrace", string.optional) :<:
-        kvpNil[ScalaCoreValue]
+        kvpNil
     ).xmap[WrongTypeError[_]](
       _ => sys.error("Mapping to a WrongTypeError is not supported"),
       wrongTypeToHList(_))

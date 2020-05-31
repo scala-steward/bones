@@ -5,7 +5,6 @@ import com.bones.data.Error._
 import com.bones.data.KeyValueDefinition.CoproductDataDefinition
 import com.bones.data.custom.CNilF
 import com.bones.data.{KeyValueDefinition, KvpCoNil, KvpCoproduct, KvpSingleValueLeft, _}
-import com.bones.syntax.NoAlgebra
 import com.bones.validation.ValidationDefinition.ValidationOp
 import com.bones.validation.{ValidationUtil => vu}
 import com.bones.{Path, Util}
@@ -53,11 +52,6 @@ object KvpInterchangeFormatValidatorInterpreter {
       alg: ALG[A]): (Option[IN], List[String]) => Either[NonEmptyList[ExtractionError], A]
   }
 
-  case class NoAlgebraValidator[IN]() extends InterchangeFormatValidator[NoAlgebra, IN] {
-    override def validate[A](
-      alg: NoAlgebra[A]): (Option[IN], List[String]) => Either[NonEmptyList[ExtractionError], A] =
-      sys.error("Unreachable code")
-  }
 }
 
 /**
@@ -87,10 +81,6 @@ trait KvpInterchangeFormatValidatorInterpreter[IN] {
         (in) =>
           valueDefinition(x, interchangeFormatValidator).apply(Some(in), List.empty)
     }
-
-  def validatorFromSchema[A](
-    schema: BonesSchema[NoAlgebra, A]): IN => Either[NonEmptyList[ExtractionError], A] =
-    validatorFromCustomSchema[NoAlgebra, A](schema, NoAlgebraValidator[IN])
 
   def validatorFromSchemaWithPath[ALG[_], A](
     schema: BonesSchema[ALG, A],
