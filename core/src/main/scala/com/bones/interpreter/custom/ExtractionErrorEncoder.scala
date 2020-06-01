@@ -219,7 +219,7 @@ trait ExtractionErrorEncoder[OUT]
       h => sys.error("Mapping to an RequiredValue is not supported"),
       requiredValueToHList)
 
-  object scalaCoreEncoder extends  ScalaCoreEncoder[OUT] {
+  object ScalaCoreEncoder extends ScalaCoreEncoder[OUT] {
     override val defaultEncoder: KvpInterchangeFormatEncoderInterpreter[OUT] = self.defaultEncoder
   }
 
@@ -227,23 +227,23 @@ trait ExtractionErrorEncoder[OUT]
       defaultEncoder
         .encoderFromCustomSchema[ScalaCoreValue, CanNotConvert[_, _]](
           canNotConvertSchema,
-          scalaCoreEncoder)
+          ScalaCoreEncoder)
 
   def notFoundEncoder = defaultEncoder
-    .encoderFromCustomSchema[ScalaCoreValue, NotFound[_]](notFoundDataSchema, scalaCoreEncoder)
+    .encoderFromCustomSchema[ScalaCoreValue, NotFound[_]](notFoundDataSchema, ScalaCoreEncoder)
   def parsingErrorEncoder = defaultEncoder
-    .encoderFromCustomSchema[ScalaCoreValue, ParsingError](parsingErrorSchema, scalaCoreEncoder)
+    .encoderFromCustomSchema[ScalaCoreValue, ParsingError](parsingErrorSchema, ScalaCoreEncoder)
   def requiredValueEncoder =
     defaultEncoder
-      .encoderFromCustomSchema[ScalaCoreValue, RequiredValue[_]](requiredValueSchema, scalaCoreEncoder)
+      .encoderFromCustomSchema[ScalaCoreValue, RequiredValue[_]](requiredValueSchema, ScalaCoreEncoder)
   def sumTypeErrorEncoder = defaultEncoder
-    .encoderFromCustomSchema[ScalaCoreValue, SumTypeError](sumTypeErrorSchema, scalaCoreEncoder)
+    .encoderFromCustomSchema[ScalaCoreValue, SumTypeError](sumTypeErrorSchema, ScalaCoreEncoder)
   def systemErrorEncoder = defaultEncoder
-    .encoderFromCustomSchema[ScalaCoreValue, SystemError](systemErrorSchema, scalaCoreEncoder)
+    .encoderFromCustomSchema[ScalaCoreValue, SystemError](systemErrorSchema, ScalaCoreEncoder)
   def validationErrorEncoder = defaultEncoder
-    .encoderFromCustomSchema[ScalaCoreValue, ValidationError[_]](validationErrorSchema, scalaCoreEncoder)
+    .encoderFromCustomSchema[ScalaCoreValue, ValidationError[_]](validationErrorSchema, ScalaCoreEncoder)
   def wrongTypeErrorEncoder = defaultEncoder
-    .encoderFromCustomSchema[ScalaCoreValue, WrongTypeError[_]](wrongTypeErrorSchema, scalaCoreEncoder)
+    .encoderFromCustomSchema[ScalaCoreValue, WrongTypeError[_]](wrongTypeErrorSchema, ScalaCoreEncoder)
 
   override def encode[A](alg: ExtractionErrorValue[A]): A => OUT =
     alg match {

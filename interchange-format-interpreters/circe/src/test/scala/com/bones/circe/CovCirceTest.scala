@@ -1,18 +1,20 @@
 package com.bones.circe
 
-import java.nio.charset.StandardCharsets
 import java.time.format.DateTimeFormatter
 import java.time.{Instant, ZoneId}
 import java.util.Locale
 
+import com.bones.circe.custom.BaseScalaCoreEncoder
+import com.bones.data.custom.ScalaCoreValue
 import com.bones.interpreter.KvpInterchangeFormatEncoderInterpreter.InterchangeFormatEncoder
-import com.bones.schemas.CovSchemas._
+import com.bones.schemas.CustomCovSchema._
 import io.circe.Json
-import org.scalatest.{FunSuite, MustMatchers}
+import org.scalatest.funsuite.AnyFunSuite
+import org.scalatest.matchers.must.Matchers
 import org.scalatestplus.scalacheck.Checkers
 import shapeless.{:+:, CNil, Inl, Inr}
 
-class CovCirceTest extends FunSuite with Checkers with MustMatchers {
+class CovCirceTest extends AnyFunSuite with Checkers with Matchers {
 
   implicit override val generatorDrivenConfig =
     PropertyCheckConfiguration(minSuccessful = 1000, workers = 5)
@@ -44,15 +46,14 @@ class CovCirceTest extends FunSuite with Checkers with MustMatchers {
               Json.fromString(dateFormatter.format(i.asInstanceOf[Instant]))
       }
 
-    type CombinedAlgebra[A] = CustomAlgebra[A] :+: DateExtAlgebra[A] :+: CNil
+    object BlogEncoder extends InterchangeFormatEncoder[BlogAlgebra, Json] {
 
-    object BlogEncoder extends InterchangeFormatEncoder[CombinedAlgebra, Json] {
-
-      def encode[A](alg: CombinedAlgebra[A]): A => Json =
+      def encode[A](alg: BlogAlgebra[A]): A => Json =
         alg match {
-          case Inl(customAlgebra)       => customAlgebraEncoder(customAlgebra)
-          case Inr(Inl(dateExtAlgebra)) => dateExtAlgebraEncoder(dateExtAlgebra)
-          case Inr(Inr(_))              => sys.error("Unreachable code")
+          case Inl(customAlgebra)            => customAlgebraEncoder(customAlgebra)
+          case Inr(Inl(dateExtAlgebra))      => dateExtAlgebraEncoder(dateExtAlgebra)
+          case Inr(Inr(Inl(scalaCoreValue))) => BaseScalaCoreEncoder.encode(scalaCoreValue)
+          case Inr(Inr(Inr(_)))              => sys.error("Unreachable code")
         }
     }
 
@@ -60,7 +61,6 @@ class CovCirceTest extends FunSuite with Checkers with MustMatchers {
       .encoderFromCustomSchema(BlogPost.blogPostSchema, BlogEncoder)
 
     val blogPost = BlogPost(1, "title", List("tag1", "tag2"), Instant.now(), "Here is some content")
-
 
     val json = blogPostToJson.apply(blogPost)
     val jsonString = json.spaces2
