@@ -13,14 +13,9 @@ package object argonaut {
     * Implement both Encoder and Validator to ensure consistent data formats and coproductTypeKey */
   object IsoArgonautEncoderAndValidatorInterpreter
       extends ArgonautEncoderInterpreter
-      with ArgonautValidatorInterpreter
-      with DateToStringEncoder[Json]
-      with StringToDateValidator[Json] {
+      with ArgonautValidatorInterpreter {
 
     override val coproductTypeKey: String = "type"
-    override def localDateFormatter: DateTimeFormatter = DateTimeFormatter.ISO_LOCAL_DATE
-    override def localDateTimeFormatter: DateTimeFormatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME
-    override def localTimeFormatter: DateTimeFormatter = DateTimeFormatter.ISO_LOCAL_TIME
   }
 
 }

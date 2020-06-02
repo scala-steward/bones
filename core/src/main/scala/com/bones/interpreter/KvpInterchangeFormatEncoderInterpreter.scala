@@ -29,6 +29,7 @@ object KvpInterchangeFormatEncoderInterpreter {
         r: InterchangeFormatEncoder[R, OUT]
       ): InterchangeFormatEncoder[Lambda[A => ALG[A] :+: R[A]], OUT] =
         merge(base, r)
+
     }
 
     case class CNilInterchangeFormatEncoder[OUT]() extends InterchangeFormatEncoder[CNilF, OUT] {
