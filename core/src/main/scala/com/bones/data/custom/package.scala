@@ -1,6 +1,5 @@
 package com.bones.data
 
-import com.bones.validation.ValidationDefinition.{BigDecimalValidation, ByteValidation, CharValidation, DoubleValidation, EnumerationValidation, FloatValidation, IntValidation, LongValidation, ShortValidation, StringValidation}
 import shapeless.ops.coproduct
 import shapeless.{:+:, CNil, Inl, Inr}
 
@@ -8,9 +7,7 @@ package object custom {
 
   type CNilF[A] = CNil // trick to make things consistent on kind-level
 
-  /* This Type ties all the custom algebras together into a single coproduct */
-//  type CustomStringCoproduct[A] = CustomStringValue[A] :+: CNilF[A]
-//  type AllCustomAlgebrasX[A] = JavaTimeValue[A] :+: CustomStringCoproduct[A]
+  /* This Type ties all the algebras together into a single coproduct */
   type AllCustomAlgebras[A] =
     ScalaCoreValue[A] :+: CustomStringValue[A] :+: JavaTimeValue[A] :+: JavaUtilValue[A] :+:
       CNilF[A]
